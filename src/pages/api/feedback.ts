@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '../../lib/supabase';
 import { z } from 'zod';
-import sanitizeHtml from 'sanitize-html';
 import { sendMail } from '../../lib/mailer';
 
 const feedbackSchema = z.object({
@@ -33,7 +32,10 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: result.error.issues[0].message }), { status: 400 });
   }
 
-  const message = sanitizeHtml(result.data.message, { allowedTags: [], allowedAttributes: {} });
+  const message = result.data.message
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '\n');
 
   const { error } = await supabase.from('feedback').insert({ message });
   if (error) return new Response(JSON.stringify({ error: 'Ошибка при отправке' }), { status: 500 });
