@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { supabase } from '../../lib/supabase';
 import { z } from 'zod';
 import { sendMail } from '../../lib/mailer';
+import { sendTelegram } from '../../lib/telegram';
 
 const feedbackSchema = z.object({
   message: z.string().trim().min(1, 'Сообщение не может быть пустым').max(2000, 'Слишком длинное сообщение'),
@@ -39,6 +40,12 @@ export const POST: APIRoute = async ({ request }) => {
 
   const { error } = await supabase.from('feedback').insert({ message });
   if (error) return new Response(JSON.stringify({ error: 'Ошибка при отправке' }), { status: 500 });
+
+  await sendTelegram(
+    `<b>📩 Новое обращение в кабинет доверия</b>\n\n${message.replace(/</g, '&lt;').replace(/>/g, '&gt;')}`,
+  ).catch((e) => {
+    console.error('Telegram notification failed:', e?.message || e);
+  });
 
   const notifyTo = process.env.FEEDBACK_NOTIFY_TO;
   if (notifyTo) {

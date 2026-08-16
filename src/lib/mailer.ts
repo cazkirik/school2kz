@@ -69,8 +69,14 @@ export async function sendMail(to: string, subject: string, html: string): Promi
     await command(socket, `MAIL FROM:<${FROM}>`, [250]);
     await command(socket, `RCPT TO:<${to}>`, [250, 251]);
     await command(socket, 'DATA', [354]);
+    const date = new Date().toUTCString();
+    const messageId = `<${Date.now()}.${Math.random().toString(36).slice(2)}@${HOST}>`;
     socket.write(
-      `Subject: =?UTF-8?B?${encodeBase64(subject)}?=\r\n` +
+      `From: Средняя школа №2 города Тараз <${FROM}>\r\n` +
+        `To: <${to}>\r\n` +
+        `Date: ${date}\r\n` +
+        `Message-ID: ${messageId}\r\n` +
+        `Subject: =?UTF-8?B?${encodeBase64(subject)}?=\r\n` +
         'MIME-Version: 1.0\r\n' +
         'Content-Type: text/html; charset=UTF-8\r\n' +
         'Content-Transfer-Encoding: 8bit\r\n' +
