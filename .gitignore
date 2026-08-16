@@ -30,3 +30,5 @@ make_session.tmp.mjs
 
 # temp scripts
 make_session.tmp.mjs
+.vercel
+.env*

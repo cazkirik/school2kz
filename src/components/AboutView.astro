@@ -9,6 +9,7 @@ const content = {
   ru: {
     intro: 'Коммунальное государственное учреждение «Средняя школа №2 города Тараз управления образования акимата Жамбылской области» осуществляет образовательную деятельность в соответствии с Законом Республики Казахстан «Об образовании» и Государственным общеобязательным стандартом образования. Школа реализует общеобразовательные программы начального, основного среднего и общего среднего образования.',
     heading1: 'Основные направления деятельности',
+    directorLabel: 'Директор школы',
     values: [
       'Обеспечение качественного и доступного общего среднего образования',
       'Воспитание казахстанского патриотизма и гражданственности у обучающихся',
@@ -26,6 +27,7 @@ const content = {
   kk: {
     intro: 'Жамбыл облысы әкімдігінің білім басқармасы Тараз қаласының білім бөлімінің «Тараз қаласының №2 орта мектебі» коммуналдық мемлекеттік мекемесі «Білім туралы» Қазақстан Республикасы Заңына және Мемлекеттік жалпыға міндетті білім беру стандартына сәйкес білім беру қызметін жүзеге асырады. Мектеп бастауыш, негізгі орта және жалпы орта білім берудің жалпы білім беретін бағдарламаларын іске асырады.',
     heading1: 'Қызметтің негізгі бағыттары',
+    directorLabel: 'Мектеп директоры',
     values: [
       'Сапалы және қолжетімді жалпы орта білім беруді қамтамасыз ету',
       'Оқушыларда қазақстандық патриотизм мен азаматтықты тәрбиелеу',
@@ -53,6 +55,16 @@ const content = {
       </div>
       <div class="aspect-[4/3] rounded-2xl overflow-hidden shadow-[var(--shadow-lg)] reveal">
         <img src="/school-photo.jpg" alt={siteConfig.name[lang]} width="800" height="600" class="w-full h-full object-cover" loading="lazy" />
+      </div>
+    </div>
+
+    <div class="mb-20 flex items-center gap-6 p-8 bg-white border border-[var(--color-border)] rounded-2xl shadow-sm max-md:flex-col max-md:text-center">
+      <div class="w-20 h-20 rounded-full bg-[var(--color-primary-soft)] flex items-center justify-center shrink-0">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+      </div>
+      <div class="reveal">
+        <span class="eyebrow mb-2">{content.directorLabel}</span>
+        <p class="text-xl font-extrabold m-0">{siteConfig.director[lang]}</p>
       </div>
     </div>
 
