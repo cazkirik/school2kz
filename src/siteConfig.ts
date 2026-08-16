@@ -16,7 +16,7 @@ export const siteConfig = {
   address: 'г. Тараз, ул. Шерхана Муртаза, 34',
   addressKk: 'Тараз қ., Шерхан Мұртаза көшесі, 34',
   phone: '+7 (7262) 43-06-54',
-  email: 'info@school2-taraz.kz',
+  email: 'school2taraz@gmail.com',
   // Директор школы (по данным реестра юридических лиц РК, SafeDeal, 2026)
   director: {
     ru: 'Саду Дина Рахметуллақызы',
