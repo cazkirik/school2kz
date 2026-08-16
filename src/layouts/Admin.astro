@@ -1,0 +1,47 @@
+---
+import { siteConfig } from '../siteConfig';
+import type { Locale } from '../i18n/ui';
+import '@fontsource-variable/plus-jakarta-sans';
+import '../styles/global.css';
+
+interface Props { lang?: Locale }
+const { lang = 'ru' } = Astro.props;
+const { profile } = Astro.locals;
+const path = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{`Админ-панель — ${siteConfig.name[lang]}`}</title>
+  </head>
+  <body class="flex flex-col min-h-screen bg-[var(--color-bg-soft)]">
+    <header class="bg-white border-b border-[var(--color-border)] h-[64px] flex items-center sticky top-0 z-50">
+      <div class="container flex items-center justify-between">
+        <a href="/admin" class="flex items-center gap-2.5 font-extrabold text-base text-[var(--color-text-primary)] no-underline">
+          <img src="/emblem-taraz.png" alt="" width="32" height="32" class="w-8 h-8 rounded-full object-contain" loading="eager" />
+          <span>Админ-панель</span>
+        </a>
+        <nav class="flex gap-5 max-md:hidden">
+          {['super_admin','moderator'].includes(profile?.role ?? '') && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/feedback' }]} href="/admin/feedback">Кабинет доверия</a>}
+          {['super_admin','moderator','editor'].includes(profile?.role ?? '') && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/news' }]} href="/admin/news">Новости</a>}
+          {['super_admin','moderator','editor'].includes(profile?.role ?? '') && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/announcements' }]} href="/admin/announcements">Объявления</a>}
+          {['super_admin','moderator'].includes(profile?.role ?? '') && <>
+            <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/teachers' }]} href="/admin/teachers">Учителя</a>
+            <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/schedule' }]} href="/admin/schedule">Расписание</a>
+          </>}
+          {(profile?.role ?? '') === 'super_admin' && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/users' }]} href="/admin/users">Пользователи</a>}
+        </nav>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold text-[var(--color-primary)] bg-[var(--color-primary-soft)] px-2.5 py-1 rounded-full">{profile?.role}</span>
+          <form action="/api/auth/signout" method="POST" class="inline"><input type="hidden" name="redirect" value="/" /><button class="text-xs font-bold text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 cursor-pointer hover:bg-[var(--color-bg-soft)] transition-colors" type="submit">Выйти</button></form>
+        </div>
+      </div>
+    </header>
+    <main class="flex-1 py-8"><div class="container"><slot /></div></main>
+  </body>
+</html>

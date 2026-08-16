@@ -1,0 +1,33 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+import { supabase } from '../lib/supabase';
+import TeacherCard from './TeacherCard.astro';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = ui[lang].teachers;
+
+const { data: teachers } = await supabase
+  .from('teachers')
+  .select('id, full_name, subject, experience, photo_url')
+  .order('full_name');
+---
+
+<section class="py-20">
+  <div class="container">
+    <div class="text-center mb-12 reveal">
+      <h2 class="text-[clamp(28px,4vw,38px)] font-extrabold m-0 mb-3">{t.title}</h2>
+    </div>
+    {teachers && teachers.length > 0 ? (
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-8">
+        {teachers.map((teacher, i) => (
+          <div class="reveal" style={`transition-delay:${i * 80}ms`}>
+            <TeacherCard teacher={teacher} lang={lang} />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p class="text-center text-[var(--color-text-secondary)] py-12">{t.empty}</p>
+    )}
+  </div>
+</section>

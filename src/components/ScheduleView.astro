@@ -1,0 +1,112 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+import { supabase } from '../lib/supabase';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = ui[lang].schedule;
+
+const { data: schedules } = await supabase
+  .from('schedules')
+  .select('class_name, day_of_week, lesson_number, subject_name, teacher_name, room')
+  .order('day_of_week')
+  .order('lesson_number');
+
+const classes = Array.from(new Set((schedules ?? []).map(s => s.class_name))).sort();
+
+const DAYS = {
+  ru: ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+  kk: ['Дүйсенбі', 'Сейсенбі', 'Сәрсенбі', 'Бейсенбі', 'Жұма', 'Сенбі'],
+} as const;
+
+const LESSON_TIMES = [
+  '08:00 – 08:45',
+  '08:55 – 09:40',
+  '09:50 – 10:35',
+  '10:55 – 11:40',
+  '11:50 – 12:35',
+  '13:00 – 13:45',
+  '13:55 – 14:40',
+  '14:50 – 15:35',
+  '15:50 – 16:35',
+];
+---
+
+<section class="py-16">
+  <div class="container">
+    <h2 class="text-[clamp(28px,4vw,38px)] font-extrabold mb-8">{t.title}</h2>
+
+    {classes.length === 0 ? (
+      <p class="text-center text-[var(--color-text-secondary)] py-12">{t.empty}</p>
+    ) : (
+      <>
+        <label class="block mb-6 text-base font-bold" for="class-select">{t.selectClass}</label>
+        <select id="class-select" class="px-4 py-2.5 border border-[var(--color-border)] rounded-lg text-base font-[inherit] text-[var(--color-text-primary)] mb-8">
+          {classes.map(cls => (
+            <option value={cls}>{cls}</option>
+          ))}
+        </select>
+
+        {classes.map((cls) => {
+          const classSchedules = (schedules ?? []).filter(s => s.class_name === cls);
+          return (
+            <div class="schedule-block" data-class={cls}>
+              <h3 class="text-2xl font-bold mb-6 text-[var(--color-primary)]">{cls}</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                {DAYS[lang].map((dayName, idx) => {
+                  const daySchedules = classSchedules.filter(s => s.day_of_week === idx + 1);
+                  return (
+                    <div class="bg-white border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-sm" data-day={idx + 1}>
+                      <h4 class="px-5 py-3 bg-[var(--color-bg-soft)] font-bold text-[var(--color-text-primary)] border-b border-[var(--color-border)]">{dayName}</h4>
+                      {daySchedules.length === 0 ? (
+                        <p class="text-[var(--color-text-secondary)] text-center py-6 m-0">—</p>
+                      ) : (
+                        <table class="w-full border-collapse text-sm">
+                          <thead>
+                            <tr>
+                              <th class="px-3 py-2 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider w-10">{t.lesson}</th>
+                              <th class="px-3 py-2 text-left text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">{t.subject}</th>
+                              <th class="px-3 py-2 text-left text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">{t.time}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {daySchedules.map(s => (
+                              <tr class="border-t border-[var(--color-border)]">
+                                <td class="px-3 py-2.5 text-[var(--color-text-primary)] font-semibold">{s.lesson_number}</td>
+                                <td class="px-3 py-2.5">
+                                  <div class="font-medium text-[var(--color-text-primary)]">{s.subject_name}</div>
+                                  {s.teacher_name ? <div class="text-xs text-[var(--color-text-secondary)] mt-0.5">{s.teacher_name}</div> : ''}
+                                </td>
+                                <td class="px-3 py-2.5 text-[var(--color-text-secondary)] whitespace-nowrap">
+                                  {LESSON_TIMES[s.lesson_number - 1]}
+                                  {s.room ? <span class="block text-xs mt-0.5">каб. {s.room}</span> : ''}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </>
+    )}
+  </div>
+</section>
+
+<script>
+  const select = document.getElementById('class-select') as HTMLSelectElement | null;
+  if (select) {
+    const update = () => {
+      const cls = select.value;
+      document.querySelectorAll<HTMLElement>('.schedule-block').forEach(el => {
+        el.style.display = el.dataset.class === cls ? '' : 'none';
+      });
+    };
+    select.addEventListener('change', update);
+  }
+</script>

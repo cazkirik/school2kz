@@ -1,0 +1,25 @@
+---
+import Base from '../../layouts/Base.astro';
+import { siteConfig } from '../../siteConfig';
+import PublicationsPostView from '../../components/PublicationsPostView.astro';
+import { getCollection } from 'astro:content';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const entries = await getCollection('publications');
+  return entries
+    .filter((e) => e.data.lang === 'ru')
+    .map((entry) => ({
+      params: { slug: entry.id.split('/')[0] },
+      props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+const lang = 'ru';
+---
+
+<Base lang={lang} title={`${entry.data.title} — ${siteConfig.name[lang]}`} description={entry.data.description}>
+  <PublicationsPostView lang={lang} entry={entry} />
+</Base>

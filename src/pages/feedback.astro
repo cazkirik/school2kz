@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import { ui } from '../i18n/ui';
+import { siteConfig } from '../siteConfig';
+import FeedbackView from '../components/FeedbackView.astro';
+
+const lang = 'ru';
+const t = ui[lang].feedback;
+---
+<Base lang={lang} title={`${t.title} — ${siteConfig.name[lang]}`}>
+  <FeedbackView lang={lang} />
+</Base>

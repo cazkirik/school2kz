@@ -1,0 +1,115 @@
+---
+import Base from '../layouts/Base.astro';
+import { siteConfig } from '../siteConfig';
+import { supabase } from '../lib/supabase';
+
+const lang = 'ru';
+
+let profile: any = null;
+let schedules: any[] = [];
+let announcements: any[] = [];
+
+const accessToken = Astro.cookies.get('sb-access-token')?.value;
+const refreshToken = Astro.cookies.get('sb-refresh-token')?.value;
+
+if (accessToken && refreshToken) {
+  const { data: { session } } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken
+  });
+  if (session) {
+    const { data: p } = await supabase.from('profiles').select('id, full_name, role').eq('id', session.user.id).single();
+    profile = p;
+    if (profile?.role === 'student' || profile?.role === 'parent') {
+      const { data: s } = await supabase.from('schedules').select('class_name, day_of_week, lesson_number, subject_name, teacher_name, room').order('day_of_week').order('lesson_number');
+      schedules = s ?? [];
+    } else if (profile?.role === 'teacher') {
+      const { data: a } = await supabase.from('announcements').select('id, title, content, audience, pinned, date').eq('audience', 'teachers').order('date', { ascending: false });
+      announcements = a ?? [];
+    }
+    if (profile?.role === 'student' || profile?.role === 'parent' || profile?.role === 'teacher') {
+      const { data: a } = await supabase.from('announcements').select('id, title, content, audience, pinned, date').eq('lang', 'ru').in('audience', ['all', profile.role === 'teacher' ? 'teachers' : profile.role === 'parent' ? 'parents' : 'students']).order('date', { ascending: false });
+      announcements = a ?? [];
+    }
+  }
+}
+
+const classes = Array.from(new Set(schedules.map(s => s.class_name))).sort();
+const DAYS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+const LESSON_TIMES = ['08:00 – 08:45','08:55 – 09:40','09:50 – 10:35','10:55 – 11:40','11:50 – 12:35','13:00 – 13:45','13:55 – 14:40','14:50 – 15:35'];
+---
+<Base lang={lang} title={`Кабинет — ${siteConfig.name[lang]}`}>
+  <section class="py-16">
+    <div class="container max-w-[900px]">
+      {!profile ? (
+        <div class="text-center py-20">
+          <h1 class="text-3xl font-extrabold mb-4">Личный кабинет</h1>
+          <p class="text-[var(--color-text-secondary)] mb-8">Войдите, чтобы увидеть расписание и объявления</p>
+          <a href="/login?redirect=/cabinet" class="inline-flex px-7 py-3 bg-[var(--color-primary)] text-white rounded-2xl font-bold no-underline hover:bg-[var(--color-primary-hover)]">Войти</a>
+        </div>
+      ) : (
+        <>
+          <div class="flex items-center justify-between mb-10">
+            <div>
+              <h1 class="text-3xl font-extrabold mb-1">Личный кабинет</h1>
+              <p class="text-[var(--color-text-secondary)]">{profile.full_name} · {profile.role}</p>
+            </div>
+            {['super_admin','moderator','editor'].includes(profile.role) && <a href="/admin" class="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-bold no-underline hover:bg-[var(--color-primary-hover)]">Админ-панель</a>}
+          </div>
+
+          {['student','parent'].includes(profile.role) && schedules.length > 0 && (
+            <div class="mb-12">
+              <h2 class="text-2xl font-bold mb-6">Расписание</h2>
+              {classes.map(cls => (
+                <div class="mb-8">
+                  <h3 class="text-lg font-bold text-[var(--color-primary)] mb-4">{cls}</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {DAYS.map((dayName, idx) => {
+                      const daySchedules = schedules.filter(s => s.class_name === cls && s.day_of_week === idx + 1);
+                      return (
+                        <div class="bg-white border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-sm">
+                          <h4 class="px-4 py-2.5 bg-[var(--color-bg-soft)] font-bold text-sm border-b border-[var(--color-border)] m-0">{dayName}</h4>
+                          {daySchedules.length === 0 ? <p class="text-[var(--color-text-secondary)] text-center py-4 m-0 text-sm">—</p> : (
+                            <ul class="p-4 m-0 list-none flex flex-col gap-3">
+                              {daySchedules.map(s => (
+                                <li class="text-sm">
+                                  <div class="flex items-baseline justify-between gap-2">
+                                    <span class="font-semibold">{s.lesson_number}. {s.subject_name}</span>
+                                    <span class="text-xs text-[var(--color-text-muted)] whitespace-nowrap">{LESSON_TIMES[s.lesson_number - 1]}</span>
+                                  </div>
+                                  <div class="text-xs text-[var(--color-text-secondary)]">{s.teacher_name}{s.room ? ` · каб. ${s.room}` : ''}</div>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div>
+            <h2 class="text-2xl font-bold mb-6">Объявления</h2>
+            {announcements.length > 0 ? (
+              <div class="flex flex-col gap-4">
+                {announcements.map(a => (
+                  <article class:list={['bg-white border border-[var(--color-border)] rounded-2xl p-5 shadow-sm', a.pinned ? 'border-t-4 border-t-[var(--color-primary)]' : '']}>
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                      <h3 class="text-base font-bold m-0">{a.title}</h3>
+                      {a.pinned && <span class="px-2 py-0.5 bg-[var(--color-primary-soft)] text-[var(--color-primary)] rounded-full text-xs font-bold">{lang === 'ru' ? 'Закреплено' : 'Бекітілген'}</span>}
+                    </div>
+                    <p class="text-[var(--color-text-secondary)] text-sm leading-relaxed m-0 mb-2 whitespace-pre-line">{a.content}</p>
+                    <time class="text-xs text-[var(--color-text-muted)]">{new Date(a.date).toLocaleDateString('ru-RU')}</time>
+                  </article>
+                ))}
+              </div>
+            ) : <p class="text-[var(--color-text-secondary)]">Объявлений пока нет</p>}
+          </div>
+        </>
+      )}
+    </div>
+  </section>
+</Base>

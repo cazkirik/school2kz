@@ -1,0 +1,106 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+import { siteConfig } from '../siteConfig';
+
+const { lang } = Astro.props as { lang: Locale };
+const t = ui[lang];
+const path = Astro.url.pathname;
+const kkPath = path === '/' ? '/kk/' : '/kk' + path;
+const ruPath = path === '/kk/' ? '/' : path.replace(/^\/kk/, '') || '/';
+const links = [
+  { href: lang === 'ru' ? '/' : '/kk/', label: t.nav.home, active: path === '/' || path === '/kk/' },
+  { href: lang === 'ru' ? '/news/' : '/kk/news/', label: t.nav.news, active: path.startsWith('/news') || path.startsWith('/kk/news') },
+  { href: lang === 'ru' ? '/announcements/' : '/kk/announcements/', label: t.announcements.title, active: path.startsWith('/announcements') || path.startsWith('/kk/announcements') },
+  { href: lang === 'ru' ? '/publications/' : '/kk/publications/', label: t.nav.publications, active: path.startsWith('/publications') || path.startsWith('/kk/publications') },
+  { href: lang === 'ru' ? '/schedule/' : '/kk/schedule/', label: t.nav.schedule, active: path.startsWith('/schedule') || path.startsWith('/kk/schedule') },
+  { href: lang === 'ru' ? '/teachers/' : '/kk/teachers/', label: t.nav.teachers, active: path.startsWith('/teachers') || path.startsWith('/kk/teachers') },
+  { href: lang === 'ru' ? '/feedback/' : '/kk/feedback/', label: t.nav.feedback, active: path.startsWith('/feedback') || path.startsWith('/kk/feedback') },
+  { href: lang === 'ru' ? '/about/' : '/kk/about/', label: t.nav.about, active: path.startsWith('/about') || path.startsWith('/kk/about') },
+  { href: lang === 'ru' ? '/contacts/' : '/kk/contacts/', label: t.nav.contacts, active: path.startsWith('/contacts') || path.startsWith('/kk/contacts') },
+];
+---
+
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[var(--color-border)] h-[72px] flex items-center">
+  <div class="container flex items-center justify-between gap-4">
+    <a class="flex items-center gap-3 font-extrabold text-[17px] text-[var(--color-text-primary)] no-underline min-w-0" href={lang === 'ru' ? '/' : '/kk/'}>
+      <img src="/emblem-taraz.png" alt="" width="40" height="40" class="w-10 h-10 rounded-full object-contain shrink-0" loading="eager" />
+      <span class="truncate">{siteConfig.name[lang]}</span>
+    </a>
+    <nav class="hidden xl:block" aria-label="Основная навигация">
+      <ul class="flex gap-6 list-none m-0 p-0">
+        {links.map((l) => (
+          <li>
+            <a class:list={['text-[14.5px] font-semibold text-[var(--color-text-secondary)] no-underline hover:text-[var(--color-primary)] transition-colors whitespace-nowrap', { 'text-[var(--color-primary)]': l.active }]} href={l.href}>{l.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    <div class="flex items-center gap-2.5 shrink-0">
+      <a class="w-9 h-9 inline-flex items-center justify-center bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-lg text-[13px] font-bold text-[var(--color-text-primary)] no-underline hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary-soft)] transition-all" href={lang === 'ru' ? kkPath : ruPath} title={t.langSwitchTitle}>
+        {lang === 'ru' ? 'KK' : 'RU'}
+      </a>
+      <a class="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg text-[13px] font-bold no-underline hover:bg-[var(--color-primary-hover)] transition-colors hidden sm:inline-flex" data-auth-btn href={lang === 'ru' ? '/login' : '/kk/login'}>
+        {t.login}
+      </a>
+      <a class="bg-[var(--color-bg-soft)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-[13px] font-bold no-underline hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)] transition-all hidden sm:inline-flex" data-auth-btn href={lang === 'ru' ? '/auth/signup' : '/kk/auth/signup'}>
+        {t.register}
+      </a>
+      <a class="hidden sm:inline-flex bg-[var(--color-bg-soft)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-[13px] font-bold no-underline hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)] transition-all" data-cabinet-link style="display:none" href={lang === 'ru' ? '/cabinet' : '/kk/cabinet'}>
+        {t.cabinet}
+      </a>
+      <button class="xl:hidden relative w-9 h-9 bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-lg cursor-pointer" aria-label="Открыть меню" aria-expanded="false" data-nav-toggle>
+        <span class="absolute left-1/2 w-4 h-0.5 bg-[var(--color-text-primary)] rounded-sm -translate-x-1/2 -translate-y-[5px] transition-all"></span>
+        <span class="absolute left-1/2 w-4 h-0.5 bg-[var(--color-text-primary)] rounded-sm -translate-x-1/2 transition-all"></span>
+        <span class="absolute left-1/2 w-4 h-0.5 bg-[var(--color-text-primary)] rounded-sm -translate-x-1/2 translate-y-[5px] transition-all"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="fixed inset-0 z-[90] bg-white opacity-0 pointer-events-none transition-opacity duration-300" data-nav-overlay aria-hidden="true">
+  <div class="min-h-dvh flex flex-col items-center justify-center gap-8 px-5">
+    <nav>
+      <ul class="flex flex-col items-center gap-4 list-none m-0 p-0">
+        {links.map((l) => (
+          <li>
+            <a class:list={['text-2xl font-bold text-[var(--color-text-primary)] no-underline', { 'text-[var(--color-primary)]': l.active }]} href={l.href}>{l.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    <a class="text-[var(--color-primary)] text-[15px] font-bold no-underline" href={lang === 'ru' ? kkPath : ruPath}>
+      {lang === 'ru' ? 'Қазақ тіліне ауысу' : 'Переключить на русский'}
+    </a>
+    <div class="flex gap-3">
+      <a class="bg-[var(--color-primary)] text-white px-5 py-2.5 rounded-lg font-bold no-underline" href={lang === 'ru' ? '/login' : '/kk/login'}>{t.login}</a>
+      <a class="bg-[var(--color-bg-soft)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-5 py-2.5 rounded-lg font-bold no-underline" href={lang === 'ru' ? '/auth/signup' : '/kk/auth/signup'}>{t.register}</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { supabase } from '../lib/supabase';
+  const toggle = document.querySelector('[data-nav-toggle]');
+  const overlay = document.querySelector('[data-nav-overlay]');
+  if (toggle && overlay) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      overlay.setAttribute('aria-hidden', String(!open));
+      overlay.classList.toggle('opacity-100', open);
+      overlay.classList.toggle('pointer-events-auto', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    };
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    overlay.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setOpen(false)));
+  }
+  const cabinetLink = document.querySelector('[data-cabinet-link]') as HTMLElement | null;
+  async function updateCabinetLink() {
+    let loggedIn = document.cookie.includes('sb-access-token=');
+    if (!loggedIn) {
+      const { data: { session } } = await supabase.auth.getSession();
+      loggedIn = !!session;
+    }
+    if (cabinetLink) cabinetLink.style.display = loggedIn ? '' : 'none';
+  }
+  updateCabinetLink();
+</script>

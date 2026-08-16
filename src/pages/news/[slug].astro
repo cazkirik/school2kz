@@ -1,0 +1,26 @@
+---
+import Base from '../../layouts/Base.astro';
+import { siteConfig } from '../../siteConfig';
+import NewsPostView from '../../components/NewsPostView.astro';
+import { supabase } from '../../lib/supabase';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+const lang = 'ru';
+
+const { data: news } = await supabase
+  .from('news')
+  .select('*')
+  .eq('slug', slug)
+  .eq('lang', lang)
+  .maybeSingle();
+
+if (!news) {
+  return Astro.redirect('/news/');
+}
+---
+
+<Base lang={lang} title={`${news.title} — ${siteConfig.name[lang]}`} description={news.description}>
+  <NewsPostView lang={lang} news={news} />
+</Base>

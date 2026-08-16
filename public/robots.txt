@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /kk/admin/
+Disallow: /auth/
+Disallow: /cabinet/
+Disallow: /kk/cabinet/
+Disallow: /login

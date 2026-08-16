@@ -1,0 +1,49 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+import { marked } from 'marked';
+import sanitizeHtml from 'sanitize-html';
+
+interface Props {
+  lang: Locale;
+  news: {
+    title: string;
+    description: string;
+    content: string;
+    date: string;
+    image_url?: string | null;
+  };
+}
+const { lang, news } = Astro.props;
+const t = ui[lang];
+const prefix = lang === 'ru' ? '' : '/kk';
+const contentHtml = sanitizeHtml(marked.parse(news.content) as string, {
+  allowedTags: ['p', 'br', 'strong', 'em', 'b', 'i', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+  allowedAttributes: { a: ['href', 'target', 'rel'] },
+  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+});
+const fmtDate = new Intl.DateTimeFormat(lang === 'ru' ? 'ru-RU' : 'kk-KZ', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<section class="py-20 pb-24">
+  <div class="max-w-[780px] mx-auto px-4">
+    <a class="inline-flex items-center gap-2.5 mb-9 text-sm font-semibold text-[var(--color-text-secondary)] no-underline hover:text-[var(--color-primary)] transition-colors reveal" href={`${prefix}/news/`}>
+      <span class="w-8 h-8 rounded-[10px] bg-[var(--color-primary-soft)] text-[var(--color-primary)] inline-flex items-center justify-center transition-transform hover:-translate-x-0.5">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6" /></svg>
+      </span>
+      {t.news.back}
+    </a>
+    <article class="reveal">
+      <header class="mb-10">
+        <time class="text-[var(--color-text-secondary)] text-[13px] uppercase tracking-widest font-semibold" datetime={news.date}>{fmtDate.format(new Date(news.date))}</time>
+        <h1 class="text-[clamp(32px,5vw,52px)] leading-tight font-extrabold m-0 mt-3.5 mb-4">{news.title}</h1>
+        <p class="text-[var(--color-text-secondary)] text-lg m-0 mb-10 leading-relaxed">{news.description}</p>
+      </header>
+      {news.image_url && (
+        <div class="rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-[var(--shadow-md)] mb-11">
+          <img src={news.image_url} alt="" class="w-full" loading="lazy" />
+        </div>
+      )}
+      <div class="prose" set:html={contentHtml}></div>
+    </article>
+  </div>
+</section>

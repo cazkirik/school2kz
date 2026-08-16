@@ -1,0 +1,13 @@
+---
+import Base from '../../layouts/Base.astro';
+import { siteConfig } from '../../siteConfig';
+import { ui } from '../../i18n/ui';
+import AboutView from '../../components/AboutView.astro';
+
+const lang = 'kk';
+const t = ui[lang];
+---
+
+<Base lang={lang} title={`${t.about.title} — ${siteConfig.name[lang]}`}>
+  <AboutView lang={lang} />
+</Base>

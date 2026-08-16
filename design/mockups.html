@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Школа — макет дизайна</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #fbf8f2;
+    --bg-elevated: #ffffff;
+    --text: #241f16;
+    --text-muted: #6f675a;
+    --accent: #3f5a43;
+    --accent-soft: #eef1e6;
+    --brass: #b08d57;
+    --brass-soft: #f3e9d8;
+    --border: #e8e1d3;
+    --ease: cubic-bezier(0.32, 0.72, 0, 1);
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Plus Jakarta Sans', sans-serif;
+    --maxw: 1120px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #1a1610; color: var(--text); font-family: var(--sans); line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 500; letter-spacing: -0.01em; line-height: 1.18; margin: 0; color: var(--text); }
+  .frame { position: relative; }
+  .tag {
+    position: absolute; top: 14px; left: 14px; z-index: 5;
+    background: rgba(255,255,255,0.08); color: #d8cfc0;
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 5px 12px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    backdrop-filter: blur(6px);
+  }
+  .tag.dark { color: #b9b1a2; }
+  .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; width: 100%; }
+  .section { padding: 120px 0; }
+  .eyebrow {
+    display: inline-block; padding: 8px 16px; border-radius: 999px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.22em; font-weight: 600;
+    color: var(--accent); background: var(--accent-soft); margin: 0 0 20px;
+  }
+
+  /* ---- Section 1: HERO ---- */
+  .hero {
+    background: var(--text); color: var(--bg);
+    padding: 160px 0 120px; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(900px 480px at 85% -10%, rgba(176,141,87,0.28), transparent 60%),
+      radial-gradient(700px 420px at -10% 110%, rgba(63,90,67,0.5), transparent 55%);
+  }
+  .hero .container { position: relative; }
+  .hero .eyebrow { background: rgba(176,141,87,0.14); color: var(--brass); }
+  .hero h1 { color: var(--bg); font-size: clamp(52px, 8vw, 92px); font-weight: 400; max-width: 820px; letter-spacing: -0.02em; }
+  .hero h1 em { font-style: italic; color: var(--brass); }
+  .hero p { color: rgba(251,248,242,0.7); font-size: 20px; max-width: 540px; margin: 28px 0 48px; }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn, .btn-ghost {
+    display: inline-flex; align-items: center; gap: 14px;
+    padding: 7px 7px 7px 28px; border-radius: 999px;
+    font-size: 15.5px; font-weight: 600;
+    transition: transform .45s var(--ease);
+  }
+  .btn { background: var(--bg); color: var(--text); }
+  .btn-ghost { background: rgba(251,248,242,0.08); color: var(--bg); border: 1px solid rgba(251,248,242,0.18); }
+  .btn-icon {
+    width: 38px; height: 38px; border-radius: 999px;
+    background: rgba(0,0,0,0.08); display: inline-flex; align-items: center; justify-content: center;
+  }
+  .btn-ghost .btn-icon { background: rgba(255,255,255,0.14); }
+  .hero-meta {
+    margin-top: 72px; display: flex; gap: 56px; flex-wrap: wrap;
+    border-top: 1px solid rgba(251,248,242,0.12); padding-top: 32px;
+  }
+  .hero-meta div span { display: block; font-family: var(--serif); font-size: 34px; color: var(--bg); }
+  .hero-meta div small { color: rgba(251,248,242,0.55); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* ---- Section 2: News bento ---- */
+  .news { background: var(--bg); }
+  .news-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 56px; flex-wrap: wrap; }
+  .news-head h2 { font-size: clamp(34px, 4.5vw, 52px); max-width: 480px; }
+  .link-all {
+    display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px;
+  }
+  .link-all .link-arrow {
+    width: 32px; height: 32px; border-radius: 999px; background: var(--brass-soft);
+    color: var(--brass); display: inline-flex; align-items: center; justify-content: center;
+  }
+  .bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
+  .bento-lg { grid-column: span 6; }
+  .bento-sm { grid-column: span 3; }
+  .card {
+    background: rgba(36,31,22,0.045); border-radius: 34px; padding: 7px;
+    height: 100%; transition: transform .6s var(--ease), box-shadow .6s var(--ease);
+  }
+  .card-core {
+    background: #fff; border-radius: 27px; box-shadow: inset 0 1px 1px rgba(255,255,255,0.6);
+    overflow: hidden; height: 100%; display: flex; flex-direction: column;
+  }
+  .card-img { aspect-ratio: 16 / 9; background: linear-gradient(135deg, #5c7a63, #3f5a43); position: relative; }
+  .card-img::after { content: 'ФОТО'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); font-size: 13px; letter-spacing: 0.2em; }
+  .card-img.alt { background: linear-gradient(135deg, #c9a86b, #b08d57); }
+  .card-body { padding: 24px 26px 26px; display: flex; flex-direction: column; flex: 1; }
+  .card-meta { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px; }
+  .card-body h3 { font-size: 22px; line-height: 1.3; margin-bottom: 10px; }
+  .card-body p { color: var(--text-muted); font-size: 15px; margin: 0 0 20px; flex: 1; }
+  .card-more { display: inline-flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; }
+  .card-more .card-arrow {
+    width: 32px; height: 32px; border-radius: 999px; background: var(--brass-soft);
+    color: var(--brass); display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* ---- Section 3: Publications editorial split ---- */
+  .pubs { background: var(--bg-elevated); }
+  .pubs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .pubs-copy h2 { font-size: clamp(34px, 4.5vw, 52px); margin-bottom: 20px; }
+  .pubs-copy p { color: var(--text-muted); font-size: 18px; margin: 0 0 36px; }
+  .pubs-list { display: flex; flex-direction: column; gap: 16px; }
+  .pub-item {
+    display: flex; align-items: center; gap: 18px;
+    background: rgba(36,31,22,0.045); border-radius: 30px; padding: 6px;
+  }
+  .pub-thumb { width: 84px; height: 84px; border-radius: 24px; background: linear-gradient(135deg, #5c7a63, #3f5a43); flex-shrink: 0; }
+  .pub-thumb.alt { background: linear-gradient(135deg, #c9a86b, #b08d57); }
+  .pub-info { padding: 8px 12px 8px 0; flex: 1; }
+  .pub-info small { color: var(--brass); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .pub-info h3 { font-size: 19px; margin-top: 4px; }
+
+  /* ---- Section 4: About / stats ---- */
+  .about { background: var(--bg); }
+  .about-head { max-width: 640px; margin-bottom: 64px; }
+  .about-head h2 { font-size: clamp(34px, 4.5vw, 52px); margin-bottom: 20px; }
+  .about-head p { color: var(--text-muted); font-size: 19px; margin: 0; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat { background: rgba(36,31,22,0.045); border-radius: 30px; padding: 6px; }
+  .stat-core {
+    background: #fff; border-radius: 24px; box-shadow: inset 0 1px 1px rgba(255,255,255,0.6);
+    padding: 34px 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  }
+  .stat-core span:first-child { font-family: var(--serif); font-size: 44px; color: var(--accent); line-height: 1; }
+  .stat-core small { color: var(--text-muted); font-size: 14px; }
+
+  /* ---- Section 5: CTA banner ---- */
+  .cta {
+    background: var(--accent); color: #fff;
+    border-radius: 40px; padding: 88px 56px; text-align: center; position: relative; overflow: hidden;
+  }
+  .cta::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(600px 300px at 50% -20%, rgba(255,255,255,0.18), transparent 60%);
+  }
+  .cta h2 { color: #fff; font-size: clamp(32px, 4.5vw, 48px); margin-bottom: 16px; position: relative; }
+  .cta p { color: rgba(255,255,255,0.8); margin: 0 0 36px; font-size: 17px; position: relative; }
+  .cta .btn { background: #fff; color: var(--accent); position: relative; }
+  .cta .btn-icon { background: rgba(0,0,0,0.08); }
+
+  /* ---- Section 6: FOOTER ---- */
+  .footer { background: var(--text); color: rgba(251,248,242,0.7); padding: 88px 0 0; position: relative; overflow: hidden; }
+  .footer::before { content: ''; position: absolute; inset: 0; background: radial-gradient(700px 400px at 90% 0%, rgba(176,141,87,0.12), transparent 60%); }
+  .footer-top { position: relative; display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 64px; }
+  .footer-name { font-family: var(--serif); font-size: 22px; color: var(--bg); margin: 0 0 10px; }
+  .footer-tag { color: rgba(251,248,242,0.55); max-width: 260px; margin: 0; }
+  .footer-heading { color: var(--brass); font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; margin: 0 0 18px; }
+  .footer-links { display: flex; flex-direction: column; gap: 10px; }
+  .footer-links a { color: rgba(251,248,242,0.7); font-size: 15px; }
+  .footer-bottom {
+    position: relative; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    border-top: 1px solid rgba(251,248,242,0.1); padding: 24px 0;
+    color: rgba(251,248,242,0.45); font-size: 14px;
+  }
+
+  @media (max-width: 900px) {
+    .bento-lg, .bento-sm { grid-column: span 12; }
+    .pubs-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============ SECTION 1: HERO ============ -->
+  <section class="frame">
+    <span class="tag dark">Раздел 1 из 6 · Hero</span>
+    <div class="hero">
+      <div class="container">
+        <span class="eyebrow">Добро пожаловать</span>
+        <h1>Образование сегодня — <em>успех завтра</em></h1>
+        <p>Мы создаём среду, в которой каждый ученик раскрывает свой потенциал и добивается большего.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#"><span>Подробнее о школе</span><span class="btn-icon">→</span></a>
+          <a class="btn-ghost" href="#"><span>Наши новости</span><span class="btn-icon">→</span></a>
+        </div>
+        <div class="hero-meta">
+          <div><span>1200+</span><small>учеников</small></div>
+          <div><span>80</span><small>учителей</small></div>
+          <div><span>25</span><small>лет истории</small></div>
+          <div><span>30+</span><small>кружков</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 2: NEWS BENTO ============ -->
+  <section class="frame">
+    <span class="tag">Раздел 2 из 6 · Новости (bento)</span>
+    <div class="section news">
+      <div class="container">
+        <div class="news-head">
+          <h2>Последние новости школы</h2>
+          <a class="link-all" href="#">Все новости <span class="link-arrow">→</span></a>
+        </div>
+        <div class="bento">
+          <div class="bento-lg">
+            <div class="card">
+              <div class="card-core">
+                <div class="card-img"></div>
+                <div class="card-body">
+                  <div class="card-meta">15 сентября 2025</div>
+                  <h3>Наши ученики заняли призовые места на городской олимпиаде</h3>
+                  <p>Ученики 9–11 классов достойно представили школу на городской предметной олимпиаде.</p>
+                  <span class="card-more">Читать далее <span class="card-arrow">→</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bento-sm">
+            <div class="card">
+              <div class="card-core">
+                <div class="card-img alt"></div>
+                <div class="card-body">
+                  <div class="card-meta">10 сентября 2025</div>
+                  <h3>Открытие нового спортзала</h3>
+                  <p>После реконструкции возобновил работу школьный спортивный зал.</p>
+                  <span class="card-more">Читать далее <span class="card-arrow">→</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bento-sm">
+            <div class="card">
+              <div class="card-core">
+                <div class="card-img"></div>
+                <div class="card-body">
+                  <div class="card-meta">5 сентября 2025</div>
+                  <h3>Неделя науки в школе</h3>
+                  <p>Ученики представят исследовательские проекты и эксперименты.</p>
+                  <span class="card-more">Читать далее <span class="card-arrow">→</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 3: PUBLICATIONS ============ -->
+  <section class="frame">
+    <span class="tag">Раздел 3 из 6 · Публикации</span>
+    <div class="section pubs">
+      <div class="container">
+        <div class="pubs-grid">
+          <div class="pubs-copy">
+            <span class="eyebrow">Публикации</span>
+            <h2>Методические материалы и статьи</h2>
+            <p>Работы наших учителей и учеников: методики преподавания, исследовательские проекты и полезные материалы.</p>
+            <a class="link-all" href="#">Все публикации <span class="link-arrow">→</span></a>
+          </div>
+          <div class="pubs-list">
+            <div class="pub-item">
+              <div class="pub-thumb"></div>
+              <div class="pub-info">
+                <small>Иванова А.П. · математика</small>
+                <h3>Современные подходы к преподаванию математики</h3>
+              </div>
+            </div>
+            <div class="pub-item">
+              <div class="pub-thumb alt"></div>
+              <div class="pub-info">
+                <small>Петров С.В. · информатика</small>
+                <h3>Цифровая грамотность: курс для средней школы</h3>
+              </div>
+            </div>
+            <div class="pub-item">
+              <div class="pub-thumb"></div>
+              <div class="pub-info">
+                <small>Ученики 10 «А» · проект</small>
+                <h3>Робототехника в школьной программе: опыт школы</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 4: ABOUT / STATS ============ -->
+  <section class="frame">
+    <span class="tag">Раздел 4 из 6 · О школе · Цифры</span>
+    <div class="section about">
+      <div class="container">
+        <div class="about-head">
+          <span class="eyebrow">О школе</span>
+          <h2>Цифры, которые говорят за нас</h2>
+          <p>Четверть века мы помогаем детям получать знания, раскрывать таланты и верить в себя.</p>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-core"><span>1200+</span><small>учеников</small></div></div>
+          <div class="stat"><div class="stat-core"><span>80</span><small>учителей</small></div></div>
+          <div class="stat"><div class="stat-core"><span>25</span><small>лет истории</small></div></div>
+          <div class="stat"><div class="stat-core"><span>30+</span><small>кружков и секций</small></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 5: CTA ============ -->
+  <section class="frame">
+    <span class="tag">Раздел 5 из 6 · Призыв к действию</span>
+    <div class="section">
+      <div class="container">
+        <div class="cta">
+          <h2>Готовы узнать больше о нашей школе?</h2>
+          <p>Приходите на день открытых дверей или свяжитесь с нами удобным способом.</p>
+          <a class="btn" href="#"><span>Связаться с нами</span><span class="btn-icon">→</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 6: FOOTER ============ -->
+  <section class="frame">
+    <span class="tag dark">Раздел 6 из 6 · Подвал</span>
+    <div class="footer">
+      <div class="container">
+        <div class="footer-top">
+          <div>
+            <p class="footer-name">Средняя школа</p>
+            <p class="footer-tag">Образование сегодня — успех завтра. Создаём среду для роста каждого ученика.</p>
+          </div>
+          <div>
+            <p class="footer-heading">Разделы</p>
+            <div class="footer-links">
+              <a href="#">Новости</a>
+              <a href="#">Публикации</a>
+              <a href="#">О школе</a>
+              <a href="#">Контакты</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Контакты</p>
+            <div class="footer-links">
+              <a href="#">+7 (700) 000-00-00</a>
+              <a href="#">info@school.kz</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Адрес</p>
+            <div class="footer-links">
+              <a href="#">г. Астана, ул. Школьная, 1</a>
+              <a href="#">Пн–Пт: 8:00 – 18:00</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2026 Средняя школа. Все права защищены</span>
+          <span>Instagram · Telegram · YouTube</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

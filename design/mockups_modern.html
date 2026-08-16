@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Школа — Современный дружелюбный дизайн</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-main: #ffffff;
+    --bg-soft: #f8fafc;
+    --bg-dark: #0f172a;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-soft: #eff6ff;
+    --success: #059669;
+    --success-soft: #ecfdf5;
+    --border: #f1f5f9;
+    --border-dark: #334155;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius: 16px;
+    --maxw: 1200px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg-main); color: var(--text-primary); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; transition: color 0.2s ease; }
+  h1, h2, h3 { font-weight: 800; letter-spacing: -0.025em; line-height: 1.15; margin: 0; color: var(--text-primary); }
+  p { color: var(--text-secondary); margin: 0; }
+  .frame { position: relative; border-bottom: 2px dashed #cbd5e1; }
+  .tag {
+    position: absolute; top: 16px; left: 16px; z-index: 10;
+    background: #0f172a; color: #fff;
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    box-shadow: var(--shadow-md);
+  }
+  .tag.dark { background: #3b82f6; }
+  .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; width: 100%; }
+  .section { padding: 96px 0; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--primary); background: var(--primary-soft); margin: 0 0 16px;
+  }
+  .eyebrow.success { color: var(--success); background: var(--success-soft); }
+
+  /* ---- HEADER ---- */
+  .header {
+    background: #fff; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100; height: 72px; display: flex; align-items: center;
+  }
+  .header .container { display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800; color: var(--text-primary); }
+  .logo-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--primary); }
+  .nav { display: flex; gap: 32px; }
+  .nav a { font-size: 15px; font-weight: 600; color: var(--text-secondary); }
+  .nav a:hover, .nav a.active { color: var(--primary); }
+  .header-actions { display: flex; align-items: center; gap: 16px; }
+  .lang-btn {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+
+  /* ---- HERO ---- */
+  .hero-section { background: var(--bg-soft); overflow: hidden; position: relative; }
+  .hero-section::before {
+    content: ''; position: absolute; top: -20%; right: -10%; width: 50vw; height: 50vw;
+    background: radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 70%); pointer-events: none;
+  }
+  .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; }
+  .hero-section h1 { font-size: clamp(40px, 5vw, 60px); color: var(--text-primary); }
+  .hero-section h1 span { color: var(--primary); }
+  .hero-section p { font-size: 18px; line-height: 1.6; margin: 20px 0 32px; max-width: 520px; }
+  .btn-group { display: flex; gap: 16px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--primary); color: #fff; padding: 12px 28px; border-radius: var(--radius);
+    font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.15);
+  }
+  .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+  .btn-secondary {
+    background: #fff; color: var(--text-primary); border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-secondary:hover { background: var(--bg-soft); transform: translateY(-1px); }
+  .hero-img {
+    aspect-ratio: 4 / 3; background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    border-radius: 24px; box-shadow: var(--shadow-lg); overflow: hidden; position: relative;
+  }
+  .hero-img::after {
+    content: 'ФОТО ШКОЛЫ / УЧЕНИКОВ'; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary); font-size: 14px; font-weight: 700; letter-spacing: 0.1em;
+  }
+
+  /* ---- STATS ROW ---- */
+  .stats-row { border-top: 1px solid var(--border); background: #fff; padding: 40px 0; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .stat-card { display: flex; align-items: center; gap: 16px; }
+  .stat-icon {
+    width: 48px; height: 48px; border-radius: 12px; background: var(--primary-soft);
+    color: var(--primary); display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800;
+  }
+  .stat-info h4 { margin: 0; font-size: 28px; font-weight: 800; color: var(--text-primary); }
+  .stat-info p { margin: 0; font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+
+  /* ---- NEWS (BENTO) ---- */
+  .news-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 48px; }
+  .news-head h2 { font-size: clamp(28px, 4vw, 40px); }
+  .link-arrow {
+    display: inline-flex; align-items: center; gap: 6px; color: var(--primary); font-weight: 700; font-size: 15px;
+  }
+  .link-arrow:hover { color: var(--primary-hover); }
+  .news-bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .news-card {
+    background: #fff; border-radius: var(--radius); border: 1px solid var(--border);
+    overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--shadow-sm);
+  }
+  .news-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary-soft); }
+  .news-card-img {
+    aspect-ratio: 16 / 10; background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+    position: relative; overflow: hidden;
+  }
+  .news-card-img::after {
+    content: 'ИЛЛЮСТРАЦИЯ'; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #1e3a8a; font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+  }
+  .news-card-img.green { background: linear-gradient(135deg, #a7f3d0, #6ee7b7); }
+  .news-card-img.green::after { color: #064e3b; }
+  .news-card-body { padding: 24px; display: flex; flex-direction: column; flex: 1; }
+  .news-card-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .badge {
+    padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; background: var(--primary-soft); color: var(--primary);
+  }
+  .badge.success { background: var(--success-soft); color: var(--success); }
+  .news-card-date { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+  .news-card-body h3 { font-size: 20px; line-height: 1.35; margin-bottom: 8px; font-weight: 700; }
+  .news-card-body h3 a:hover { color: var(--primary); }
+  .news-card-body p { font-size: 15px; margin-bottom: 20px; flex: 1; }
+
+  /* ---- PUBLICATIONS ---- */
+  .pub-section { background: var(--bg-soft); }
+  .pub-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: center; }
+  .pub-content h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 16px; }
+  .pub-content p { font-size: 17px; line-height: 1.6; margin-bottom: 32px; }
+  .pub-list { display: flex; flex-direction: column; gap: 16px; }
+  .pub-card {
+    background: #fff; border-radius: var(--radius); border: 1px solid var(--border);
+    padding: 20px; display: flex; gap: 20px; align-items: center; transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  .pub-card:hover { border-color: var(--primary); transform: translateX(4px); box-shadow: var(--shadow-md); }
+  .pub-card-icon {
+    width: 56px; height: 56px; border-radius: 12px; background: var(--primary-soft);
+    color: var(--primary); display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 800; flex-shrink: 0;
+  }
+  .pub-card-icon.success { background: var(--success-soft); color: var(--success); }
+  .pub-card-info { flex: 1; }
+  .pub-card-meta { font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .pub-card-meta.success { color: var(--success); }
+  .pub-card-info h3 { font-size: 17px; margin-bottom: 4px; font-weight: 700; }
+  .pub-card-info p { font-size: 14px; }
+
+  /* ---- ABOUT US SPLIT ---- */
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+  .about-img {
+    aspect-ratio: 16 / 11; background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    border-radius: 24px; box-shadow: var(--shadow-lg); overflow: hidden; position: relative;
+  }
+  .about-img::after {
+    content: 'ФОТО ШКОЛЫ / КАБИНЕТОВ'; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary); font-size: 14px; font-weight: 700; letter-spacing: 0.1em;
+  }
+  .about-content h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 16px; }
+  .about-content p { font-size: 16px; line-height: 1.6; margin-bottom: 24px; }
+
+  /* ---- CTA BANNER ---- */
+  .cta-section { padding: 48px 0 96px; }
+  .cta-banner {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: #fff;
+    border-radius: 24px; padding: 64px; text-align: center; position: relative; overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .cta-banner::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(59,130,246,0.3) 0%, transparent 50%); pointer-events: none;
+  }
+  .cta-banner h2 { color: #fff; font-size: 36px; margin-bottom: 12px; }
+  .cta-banner p { color: rgba(255, 255, 255, 0.8); font-size: 17px; max-width: 540px; margin: 0 auto 32px; }
+  .cta-banner .btn { background: #fff; color: var(--primary); box-shadow: var(--shadow-md); }
+  .cta-banner .btn:hover { background: var(--primary-soft); }
+
+  /* ---- FOOTER ---- */
+  .footer { background: var(--bg-dark); color: #94a3b8; padding: 80px 0 40px; }
+  .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 64px; }
+  .footer-brand .logo { color: #fff; margin-bottom: 16px; }
+  .footer-brand .logo-icon { background: #3b82f6; }
+  .footer-brand p { color: #64748b; font-size: 14px; max-width: 280px; }
+  .footer-title { color: #fff; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; }
+  .footer-links { display: flex; flex-direction: column; gap: 12px; }
+  .footer-links a { color: #94a3b8; font-size: 14px; font-weight: 500; }
+  .footer-links a:hover { color: #fff; }
+  .footer-bottom {
+    border-top: 1px solid var(--border-dark); padding-top: 24px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #64748b;
+  }
+
+  @media (max-width: 900px) {
+    .hero-grid, .pub-grid, .about-grid { grid-template-columns: 1fr; gap: 40px; }
+    .news-bento { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============ HEADER ============ -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">
+        <div class="logo-icon"></div>
+        <span>SmartSchool</span>
+      </div>
+      <nav class="nav">
+        <a href="#" class="active">Главная</a>
+        <a href="#">Новости</a>
+        <a href="#">Публикации</a>
+        <a href="#">О школе</a>
+        <a href="#">Контакты</a>
+      </nav>
+      <div class="header-actions">
+        <button class="lang-btn">KK</button>
+        <a href="#" class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px; box-shadow: none;">Войти</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ SECTION 1: HERO ============ -->
+  <section class="frame">
+    <span class="tag dark">Раздел 1 · Главный экран</span>
+    <div class="section hero-section">
+      <div class="container">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Образование будущего</span>
+            <h1>Инновационная школа для <span>успешных детей</span></h1>
+            <p>Мы воспитываем лидеров, развиваем критическое мышление и даем сильную академическую базу в дружелюбной атмосфере.</p>
+            <div class="btn-group">
+              <a href="#" class="btn"><span>Узнать больше</span><span>→</span></a>
+              <a href="#" class="btn btn-secondary"><span>Посмотреть новости</span></a>
+            </div>
+          </div>
+          <div class="hero-img"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 1b: STATS ROW ============ -->
+  <section class="frame">
+    <span class="tag">Раздел 1b · Показатели</span>
+    <div class="stats-row">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🎓</div>
+            <div class="stat-info">
+              <h4>1,200+</h4>
+              <p>Учеников</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">👩‍🏫</div>
+            <div class="stat-info">
+              <h4>80+</h4>
+              <p>Преподавателей</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🏫</div>
+            <div class="stat-info">
+              <h4>25</h4>
+              <p>Лет опыта</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-info">
+              <h4>30+</h4>
+              <p>Секций и кружков</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 2: NEWS (BENTO) ============ -->
+  <section class="frame">
+    <span class="tag">Раздел 2 · Новости</span>
+    <div class="section">
+      <div class="container">
+        <div class="news-head">
+          <div>
+            <span class="eyebrow">Новости и события</span>
+            <h2>Жизнь нашей школы</h2>
+          </div>
+          <a href="#" class="link-arrow">Все новости →</a>
+        </div>
+        <div class="news-bento">
+          <div class="news-card">
+            <div class="news-card-img"></div>
+            <div class="news-card-body">
+              <div class="news-card-meta">
+                <span class="badge">Олимпиады</span>
+                <span class="news-card-date">15 Сен 2025</span>
+              </div>
+              <h3>Наши ученики заняли призовые места на городской олимпиаде</h3>
+              <p>Ученики 9–11 классов достойно представили школу на городской предметной олимпиаде, завоевав 5 призовых медалей.</p>
+              <a href="#" class="link-arrow" style="font-size: 14px;">Читать полностью →</a>
+            </div>
+          </div>
+          <div class="news-card">
+            <div class="news-card-img green"></div>
+            <div class="news-card-body">
+              <div class="news-card-meta">
+                <span class="badge success">Спорт</span>
+                <span class="news-card-date">10 Сен 2025</span>
+              </div>
+              <h3>Открытие отремонтированного спортивного комплекса</h3>
+              <p>После капитальной реконструкции открылся обновленный спортзал с профессиональным покрытием и новым инвентарем.</p>
+              <a href="#" class="link-arrow" style="font-size: 14px;">Читать полностью →</a>
+            </div>
+          </div>
+          <div class="news-card">
+            <div class="news-card-img"></div>
+            <div class="news-card-body">
+              <div class="news-card-meta">
+                <span class="badge">Наука</span>
+                <span class="news-card-date">05 Сен 2025</span>
+              </div>
+              <h3>Старт школьной Недели Науки и Технологий</h3>
+              <p>Ученики всех классов примут участие в научных баттлах, представят собственные проекты и проведут эксперименты.</p>
+              <a href="#" class="link-arrow" style="font-size: 14px;">Читать полностью →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 3: PUBLICATIONS ============ -->
+  <section class="frame">
+    <span class="tag">Раздел 3 · Публикации</span>
+    <div class="section pub-section">
+      <div class="container">
+        <div class="pub-grid">
+          <div class="pub-content">
+            <span class="eyebrow success">Методические материалы</span>
+            <h2>Полезные публикации и статьи</h2>
+            <p>Методические наработки наших лучших учителей, статьи об инновациях в образовании и исследовательские проекты учащихся.</p>
+            <a href="#" class="btn"><span>Все публикации</span></a>
+          </div>
+          <div class="pub-list">
+            <div class="pub-card">
+              <div class="pub-card-icon">📐</div>
+              <div class="pub-card-info">
+                <div class="pub-card-meta">Математика</div>
+                <h3>Современные интерактивные методы в математике</h3>
+                <p>Автор: Иванова А.П. · 12 сентября 2025</p>
+              </div>
+            </div>
+            <div class="pub-card">
+              <div class="pub-card-icon success">💻</div>
+              <div class="pub-card-info">
+                <div class="pub-card-meta success">Информатика</div>
+                <h3>Цифровая грамотность и кибергигиена в средней школе</h3>
+                <p>Автор: Петров С.В. · 08 сентября 2025</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 4: ABOUT ============ -->
+  <section class="frame">
+    <span class="tag">Раздел 4 · О школе</span>
+    <div class="section">
+      <div class="container">
+        <div class="about-grid">
+          <div class="about-img"></div>
+          <div class="about-content">
+            <span class="eyebrow">О нас</span>
+            <h2>Почему родители и дети выбирают SmartSchool?</h2>
+            <p>Мы объединяем сильную классическую академическую школу с передовыми интерактивными технологиями обучения. Каждый класс оснащен мультимедийным оборудованием, а преподавание ведут профессионалы высокого класса.</p>
+            <p>Индивидуальный подход к каждому ученику помогает развивать именно те таланты и навыки, которые принесут наибольший успех в будущем.</p>
+            <a href="#" class="link-arrow">Узнать больше об администрации школы →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 5: CTA BANNER ============ -->
+  <section class="frame">
+    <span class="tag">Раздел 5 · Призыв к действию</span>
+    <div class="section cta-section">
+      <div class="container">
+        <div class="cta-banner">
+          <h2>Хотите учиться у нас?</h2>
+          <p>Запишитесь на индивидуальную экскурсию по школе или оставьте заявку на день открытых дверей.</p>
+          <a href="#" class="btn"><span>Связаться с нами</span><span>→</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo">
+            <div class="logo-icon"></div>
+            <span>SmartSchool</span>
+          </div>
+          <p>Инновационная школа для успешных детей. Раскрываем таланты и даем качественное образование.</p>
+        </div>
+        <div>
+          <h4 class="footer-title">Навигация</h4>
+          <div class="footer-links">
+            <a href="#">Главная</a>
+            <a href="#">Новости</a>
+            <a href="#">Публикации</a>
+            <a href="#">Администрация</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-title">Контакты</h4>
+          <div class="footer-links">
+            <a href="#">+7 (700) 000-00-00</a>
+            <a href="#">info@school.kz</a>
+            <a href="#">Астана, ул. Школьная, 1</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-title">Социальные сети</h4>
+          <div class="footer-links">
+            <a href="#">Instagram</a>
+            <a href="#">YouTube</a>
+            <a href="#">Telegram</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 SmartSchool. Все права защищены.</span>
+        <span>Разработано в соответствии с государственными стандартами.</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

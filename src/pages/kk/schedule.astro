@@ -1,0 +1,12 @@
+---
+import Base from '../../layouts/Base.astro';
+import { ui } from '../../i18n/ui';
+import { siteConfig } from '../../siteConfig';
+import ScheduleView from '../../components/ScheduleView.astro';
+
+const lang = 'kk';
+const t = ui[lang].schedule;
+---
+<Base lang={lang} title={`${t.title} — ${siteConfig.name[lang]}`}>
+  <ScheduleView lang={lang} />
+</Base>

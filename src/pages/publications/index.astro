@@ -1,0 +1,13 @@
+---
+import Base from '../../layouts/Base.astro';
+import { siteConfig } from '../../siteConfig';
+import { ui } from '../../i18n/ui';
+import PublicationsListView from '../../components/PublicationsListView.astro';
+
+const lang = 'ru';
+const t = ui[lang];
+---
+
+<Base lang={lang} title={`${t.publications.title} — ${siteConfig.name[lang]}`}>
+  <PublicationsListView lang={lang} />
+</Base>

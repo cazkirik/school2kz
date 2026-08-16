@@ -1,0 +1,11 @@
+---
+import Base from '../../layouts/Base.astro';
+import { siteConfig } from '../../siteConfig';
+import HomeView from '../../components/HomeView.astro';
+
+const lang = 'kk';
+---
+
+<Base lang={lang} title={siteConfig.name[lang]} description={siteConfig.tagline[lang]}>
+  <HomeView lang={lang} />
+</Base>

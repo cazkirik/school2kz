@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import { siteConfig } from '../siteConfig';
+import { ui } from '../i18n/ui';
+import TeachersView from '../components/TeachersView.astro';
+
+const lang = 'ru';
+---
+<Base lang={lang} title={`${ui[lang].teachers.title} — ${siteConfig.name[lang]}`}>
+  <TeachersView lang={lang} />
+</Base>

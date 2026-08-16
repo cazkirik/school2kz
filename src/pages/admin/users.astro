@@ -1,0 +1,115 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { supabase } from '../../lib/supabase';
+
+const { data: profiles } = await supabase
+  .from('profiles')
+  .select('id, full_name, role, created_at')
+  .order('created_at');
+
+const ROLES = ['super_admin', 'moderator', 'editor', 'student', 'teacher', 'parent'];
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: 'Супер-админ',
+  moderator: 'Модератор',
+  editor: 'Редактор',
+  student: 'Ученик',
+  teacher: 'Учитель',
+  parent: 'Родитель',
+};
+const ROLE_DESC: Record<string, string> = {
+  super_admin: 'Полный доступ: пользователи, роли, весь контент, расписание, обращения',
+  moderator: 'Контент, учителя, расписание, кабинет доверия',
+  editor: 'Только новости и объявления',
+  student: 'Публичный доступ без админки',
+  teacher: 'Публичный доступ без админки',
+  parent: 'Публичный доступ без админки',
+};
+---
+<Admin>
+  <header class="mb-8">
+    <h1 class="text-3xl font-extrabold mb-1">Пользователи</h1>
+    <p class="text-[var(--color-text-secondary)]">Управление ролями и доступом</p>
+  </header>
+
+  <div id="role-status" class="hidden mb-4 px-4 py-3 rounded-lg text-sm font-medium"></div>
+
+  <div class="overflow-x-auto bg-white border border-[var(--color-border)] rounded-2xl shadow-sm">
+    <table class="w-full border-collapse text-sm">
+      <thead class="bg-[var(--color-bg-soft)]">
+        <tr>
+          <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">ФИО</th>
+          <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Уровень допуска</th>
+          <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Права</th>
+          <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Дата регистрации</th>
+        </tr>
+      </thead>
+      <tbody>
+        {profiles?.map(item => (
+          <tr class="border-t border-[var(--color-border)]" data-role-row data-user-id={item.id}>
+            <td class="px-4 py-3 font-medium">{item.full_name}</td>
+            <td class="px-4 py-3">
+              <span class="px-2.5 py-1 bg-[var(--color-primary-soft)] text-[var(--color-primary)] rounded-full text-xs font-bold">{ROLE_LABELS[item.role] ?? item.role}</span>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex gap-2 items-center">
+                <select data-role-select class="px-3 py-1.5 border border-[var(--color-border)] rounded-lg text-sm font-[inherit]">
+                  {ROLES.map(r => (
+                    <option value={r} selected={r === item.role}>{ROLE_LABELS[r]}</option>
+                  ))}
+                </select>
+                <button data-role-save class="px-3 py-1.5 bg-[var(--color-primary)] text-white border-none rounded-lg text-xs font-bold cursor-pointer hover:opacity-90" type="button">Сохранить</button>
+              </div>
+              <p class="mt-2 text-xs text-[var(--color-text-muted)] max-w-xs">{[ROLE_DESC[item.role] ?? '']}</p>
+            </td>
+            <td class="px-4 py-3 text-[var(--color-text-muted)]">
+              {new Date(item.created_at).toLocaleDateString('ru-RU')}
+            </td>
+          </tr>
+        ))}
+        {profiles?.length === 0 ? (
+          <tr>
+            <td colspan="4" class="px-4 py-8 text-center text-[var(--color-text-secondary)]">Пользователей пока нет</td>
+          </tr>
+        ) : ''}
+      </tbody>
+    </table>
+  </div>
+</Admin>
+
+<script>
+  const statusEl = document.getElementById('role-status');
+
+  function showStatus(message: string, ok: boolean) {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.hidden = false;
+    statusEl.className = 'mb-4 px-4 py-3 rounded-lg text-sm font-medium ' + (ok
+      ? 'bg-green-50 text-green-800 border border-green-200'
+      : 'bg-red-50 text-red-800 border border-red-200');
+    setTimeout(() => { statusEl.hidden = true; }, 5000);
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-role-save]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const row = btn.closest('[data-role-row]') as HTMLElement | null;
+      if (!row) return;
+      const id = row.dataset.userId;
+      const role = (row.querySelector('[data-role-select]') as HTMLSelectElement).value;
+      if (!id) return;
+      btn.disabled = true; btn.textContent = '...';
+      try {
+        const res = await fetch('/api/admin/users/role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, role })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Не удалось изменить роль');
+        showStatus('Роль обновлена', true);
+        setTimeout(() => location.reload(), 800);
+      } catch (err) {
+        showStatus('Ошибка: ' + (err instanceof Error ? err.message : '?'), false);
+      } finally { btn.disabled = false; btn.textContent = 'Сохранить'; }
+    });
+  });
+</script>

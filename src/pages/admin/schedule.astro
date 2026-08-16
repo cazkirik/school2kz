@@ -1,0 +1,145 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { supabase } from '../../lib/supabase';
+
+const { profile } = Astro.locals;
+if (!profile || !['super_admin', 'moderator'].includes(profile.role)) {
+  return Astro.redirect('/admin');
+}
+
+const { data: schedules } = await supabase
+  .from('schedules')
+  .select('id, class_name, day_of_week, lesson_number, subject_name, teacher_name, room')
+  .order('class_name')
+  .order('day_of_week')
+  .order('lesson_number');
+---
+<Admin>
+  <header class="mb-8">
+    <h1 class="text-3xl font-extrabold mb-1">Расписание</h1>
+    <p class="text-[var(--color-text-secondary)]">Управление расписанием занятий и CSV импорт</p>
+  </header>
+
+  <section class="bg-white border border-[var(--color-border)] rounded-2xl p-6 mb-8 shadow-sm">
+    <h2 class="text-lg font-bold mb-4">Импорт из CSV</h2>
+    <p class="text-[var(--color-text-secondary)] text-sm mb-4">Колонки: class_name, day_of_week, lesson_number, subject_name, teacher_name, room</p>
+    <form id="csv-import-form" class="flex gap-3 items-center flex-wrap" enctype="multipart/form-data">
+      <input type="file" name="csv" accept=".csv" required class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" />
+      <button class="px-5 py-2 bg-[var(--color-primary)] text-white border-none rounded-lg text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity" type="submit">Загрузить</button>
+      <a href="/schedule-template.csv" class="text-sm font-semibold text-[var(--color-primary)] no-underline hover:underline">Шаблон CSV</a>
+    </form>
+    <p id="import-message" class="mt-3 px-4 py-3 rounded-lg text-sm font-medium hidden"></p>
+  </section>
+
+  <section class="bg-white border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-sm">
+    <div class="px-6 pt-6 pb-4">
+      <h2 class="text-xl font-bold">Текущее расписание <small class="font-normal text-sm text-[var(--color-text-secondary)]">(кликните по ячейке для редактирования)</small></h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse text-sm" id="schedule-table">
+        <thead class="bg-[var(--color-bg-soft)]">
+          <tr>
+            <th class="px-3 py-2.5 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">Класс</th>
+            <th class="px-3 py-2.5 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">День</th>
+            <th class="px-3 py-2.5 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">Урок</th>
+            <th class="px-3 py-2.5 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">Предмет</th>
+            <th class="px-3 py-2.5 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">Учитель</th>
+            <th class="px-3 py-2.5 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">Кабинет</th>
+            <th class="px-3 py-2.5 w-20"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {schedules?.length ? schedules.map(item => (
+            <tr class="border-t border-[var(--color-border)]" data-id={item.id}>
+              <td class="px-3 py-2 font-medium">{item.class_name}</td>
+              <td class="px-3 py-2">{['Пн','Вт','Ср','Чт','Пт','Сб'][item.day_of_week - 1]}</td>
+              <td class="px-3 py-2">{item.lesson_number}</td>
+              <td class="px-3 py-2 contenteditable" data-field="subject_name">{item.subject_name}</td>
+              <td class="px-3 py-2 contenteditable" data-field="teacher_name">{item.teacher_name || ''}</td>
+              <td class="px-3 py-2 contenteditable" data-field="room">{item.room || ''}</td>
+              <td class="px-3 py-2">
+                <div class="flex gap-1">
+                  <button class="w-7 h-7 rounded-md bg-[var(--color-primary)] text-white border-none text-xs font-bold cursor-pointer hover:opacity-85 transition-opacity" data-id={item.id} title="Сохранить">✓</button>
+                  <button class="w-7 h-7 rounded-md bg-red-500 text-white border-none text-xs font-bold cursor-pointer hover:opacity-85 transition-opacity" data-delete-id={item.id} title="Удалить">×</button>
+                </div>
+              </td>
+            </tr>
+          )) : (
+            <tr>
+              <td class="px-4 py-12 text-center text-[var(--color-text-secondary)]" colspan="7">Расписание пусто</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</Admin>
+
+<script>
+  const form = document.getElementById('csv-import-form') as HTMLFormElement | null;
+  const msg = document.getElementById('import-message') as HTMLElement | null;
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const file = (form.querySelector('input[type="file"]') as HTMLInputElement)?.files?.[0];
+      if (!file) return;
+      const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+      btn.disabled = true; btn.textContent = 'Импорт...';
+      const fd = new FormData(); fd.append('csv', file);
+      try {
+        const res = await fetch('/api/admin/schedule/import', { method: 'POST', body: fd });
+        if (res.ok) {
+          if (msg) { msg.textContent = 'Импорт завершён!'; msg.className = 'mt-3 px-4 py-3 rounded-lg text-sm font-medium bg-green-50 text-green-800 border border-green-200'; msg.hidden = false; }
+          setTimeout(() => location.reload(), 800);
+        } else {
+          const err = await res.json();
+          if (msg) { msg.textContent = 'Ошибка: ' + err.error; msg.className = 'mt-3 px-4 py-3 rounded-lg text-sm font-medium bg-red-50 text-red-800 border border-red-200'; msg.hidden = false; }
+        }
+      } catch (err) {
+        if (msg) { msg.textContent = 'Ошибка: ' + (err instanceof Error ? err.message : '?'); msg.className = 'mt-3 px-4 py-3 rounded-lg text-sm font-medium bg-red-50 text-red-800 border border-red-200'; msg.hidden = false; }
+      } finally { btn.disabled = false; btn.textContent = 'Загрузить'; }
+    });
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('button[data-id]').forEach(btn => {
+    if (btn.dataset.deleteId) return;
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const row = btn.closest('tr');
+      if (!row || !id) return;
+      const data: Record<string, string> = { id };
+      row.querySelectorAll<HTMLElement>('[contenteditable]').forEach(cell => {
+        if (cell.dataset.field) data[cell.dataset.field] = cell.textContent?.trim() ?? '';
+      });
+      btn.textContent = '...'; btn.disabled = true;
+      try {
+        const res = await fetch('/api/admin/schedule/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error);
+        }
+        btn.textContent = '✓';
+      } catch (err) {
+        alert('Ошибка: ' + (err instanceof Error ? err.message : '?'));
+        btn.textContent = '✓';
+      } finally { btn.disabled = false; }
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-delete-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Удалить занятие?')) return;
+      const id = btn.dataset.deleteId;
+      if (!id) return;
+      const fd = new FormData();
+      fd.append('id', id);
+      const res = await fetch('/api/admin/schedule/delete', { method: 'POST', body: fd });
+      if (res.ok) btn.closest('tr')?.remove();
+    });
+  });
+</script>

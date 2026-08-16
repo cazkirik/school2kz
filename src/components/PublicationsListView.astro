@@ -1,0 +1,32 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+import PostCard from './PostCard.astro';
+import { getCollection } from 'astro:content';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = ui[lang];
+const items = (await getCollection('publications'))
+  .filter((p) => p.data.lang === lang)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<section class="py-20">
+  <div class="container">
+    <div class="text-center mb-12 reveal">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-[var(--color-success)] bg-[var(--color-success-soft)] mb-4">{t.publications.title}</span>
+      <h2 class="text-[clamp(28px,4vw,38px)] font-extrabold">{t.publications.title}</h2>
+    </div>
+    {items.length > 0 ? (
+      <div class="grid grid-cols-3 gap-7 max-lg:grid-cols-1">
+        {items.map((p, i) => (
+          <div class="reveal" style={`transition-delay:${i * 70}ms`}>
+            <PostCard item={p} collection="publications" lang={lang} readMore={t.publications.readMore} />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p class="text-center text-[var(--color-text-secondary)]">{t.publications.empty}</p>
+    )}
+  </div>
+</section>

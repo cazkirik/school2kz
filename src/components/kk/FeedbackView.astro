@@ -1,0 +1,57 @@
+---
+import { ui, type Locale } from '../../i18n/ui';
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = ui[lang].feedback;
+---
+<section class="py-16">
+  <div class="max-w-[768px] mx-auto px-4">
+    <h2 class="text-[clamp(28px,4vw,38px)] font-extrabold mb-2">{t.title}</h2>
+    <p class="text-[var(--color-text-secondary)] mb-8">{t.subtitle}</p>
+    <form id="feedback-form" class="flex flex-col gap-4">
+      <input type="hidden" name="lang" value={lang} />
+      <textarea class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-base font-[inherit] resize-y min-h-[120px] focus:outline-none focus:border-[var(--color-primary)] focus:shadow-[0_0_0_3px_var(--color-primary-soft)]" name="message" placeholder={t.placeholder} rows="4" required></textarea>
+      <button class="px-5 py-2.5 bg-[var(--color-primary)] text-white border-none rounded-lg text-base font-bold cursor-pointer hover:opacity-90 transition-opacity self-start" type="submit">{t.submit}</button>
+    </form>
+    <p id="feedback-toast" class="mt-4 px-4 py-3 rounded-lg font-medium text-center hidden"></p>
+  </div>
+</section>
+
+<script>
+  const form = document.getElementById('feedback-form') as HTMLFormElement | null;
+  const toast = document.getElementById('feedback-toast') as HTMLElement | null;
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!form || !toast) return;
+
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+      const textarea = form.querySelector('textarea[name="message"]') as HTMLTextAreaElement | null;
+      const message = textarea?.value?.trim() ?? '';
+
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Жіберілуде...'; }
+
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            toast.textContent = data.message || 'Сәтті жіберілді!';
+            toast.className = 'mt-4 px-4 py-3 rounded-lg font-medium text-center bg-green-50 text-green-800 border border-green-200';
+            toast.hidden = false;
+            form.reset();
+        } else { throw new Error(data.error || 'Жіберу қатесі'); }
+      } catch (err) {
+        toast.textContent = err instanceof Error ? err.message : 'Қате';
+        toast.className = 'mt-4 px-4 py-3 rounded-lg font-medium text-center bg-red-50 text-red-800 border border-red-200';
+        toast.hidden = false;
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Жіберу'; }
+      }
+    });
+  }
+</script>

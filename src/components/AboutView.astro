@@ -1,0 +1,83 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+import { siteConfig } from '../siteConfig';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = ui[lang];
+const content = {
+  ru: {
+    intro: 'Коммунальное государственное учреждение «Средняя школа №2 города Тараз управления образования акимата Жамбылской области» осуществляет образовательную деятельность в соответствии с Законом Республики Казахстан «Об образовании» и Государственным общеобязательным стандартом образования. Школа реализует общеобразовательные программы начального, основного среднего и общего среднего образования.',
+    heading1: 'Основные направления деятельности',
+    values: [
+      'Обеспечение качественного и доступного общего среднего образования',
+      'Воспитание казахстанского патриотизма и гражданственности у обучающихся',
+      'Развитие творческого, научного и спортивного потенциала учеников',
+      'Внедрение современных образовательных технологий и цифровизация обучения',
+    ],
+    heading2: 'Школа в цифрах',
+    stats: [
+      { num: '1,200+', label: 'обучающихся' },
+      { num: '80+', label: 'педагогических работников' },
+      { num: '25', label: 'лет деятельности' },
+      { num: '30+', label: 'кружков и секций' },
+    ],
+  },
+  kk: {
+    intro: 'Жамбыл облысы әкімдігінің білім басқармасы Тараз қаласының білім бөлімінің «Тараз қаласының №2 орта мектебі» коммуналдық мемлекеттік мекемесі «Білім туралы» Қазақстан Республикасы Заңына және Мемлекеттік жалпыға міндетті білім беру стандартына сәйкес білім беру қызметін жүзеге асырады. Мектеп бастауыш, негізгі орта және жалпы орта білім берудің жалпы білім беретін бағдарламаларын іске асырады.',
+    heading1: 'Қызметтің негізгі бағыттары',
+    values: [
+      'Сапалы және қолжетімді жалпы орта білім беруді қамтамасыз ету',
+      'Оқушыларда қазақстандық патриотизм мен азаматтықты тәрбиелеу',
+      'Оқушылардың шығармашылық, ғылыми және спорттық әлеуетін дамыту',
+      'Оқытуда заманауи білім беру технологияларын енгізу және цифрландыру',
+    ],
+    heading2: 'Мектеп сандармен',
+    stats: [
+      { num: '1,200+', label: 'оқушы' },
+      { num: '80+', label: 'педагог қызметкер' },
+      { num: '25', label: 'жыл қызмет' },
+      { num: '30+', label: 'үйірме мен секция' },
+    ],
+  },
+}[lang];
+---
+
+<section class="py-20">
+  <div class="container">
+    <div class="grid grid-cols-[1.1fr_0.9fr] gap-16 items-center mb-20 max-lg:grid-cols-1 max-lg:gap-8">
+      <div class="reveal">
+        <span class="eyebrow mb-4">{t.about.title}</span>
+        <h2 class="text-[clamp(32px,5vw,48px)] font-extrabold m-0 mb-4">{siteConfig.name[lang]}</h2>
+        <p class="text-lg text-[var(--color-text-secondary)] leading-relaxed m-0">{content.intro}</p>
+      </div>
+      <div class="aspect-[4/3] rounded-2xl overflow-hidden shadow-[var(--shadow-lg)] reveal">
+        <img src="/school-photo.jpg" alt={siteConfig.name[lang]} width="800" height="600" class="w-full h-full object-cover" loading="lazy" />
+      </div>
+    </div>
+
+    <div class="mb-20">
+      <h3 class="text-[28px] font-extrabold m-0 mb-7 reveal">{content.heading1}</h3>
+      <div class="grid grid-cols-2 gap-5 max-md:grid-cols-1">
+        {content.values.map((v, i) => (
+          <div class="flex gap-4 items-start p-6 bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-2xl reveal" style={`transition-delay:${i * 80}ms`}>
+            <span class="text-sm font-extrabold text-[var(--color-primary)] bg-[var(--color-primary-soft)] px-2.5 py-1 rounded-lg shrink-0">0{i + 1}</span>
+            <p class="m-0 text-base text-[var(--color-text-primary)] font-semibold">{v}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div>
+      <h3 class="text-[28px] font-extrabold m-0 mb-7 reveal">{content.heading2}</h3>
+      <div class="grid grid-cols-4 gap-5 max-md:grid-cols-2">
+        {content.stats.map((s, i) => (
+          <div class="bg-white border border-[var(--color-border)] rounded-2xl py-8 px-5 text-center shadow-sm reveal" style={`transition-delay:${i * 80}ms`}>
+            <span class="block text-[36px] font-extrabold text-[var(--color-primary)] leading-none mb-2">{s.num}</span>
+            <span class="text-sm text-[var(--color-text-secondary)]">{s.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

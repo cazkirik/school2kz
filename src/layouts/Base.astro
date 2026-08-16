@@ -1,0 +1,51 @@
+---
+import { siteConfig } from '../siteConfig';
+import type { Locale } from '../i18n/ui';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '@fontsource-variable/plus-jakarta-sans';
+import '../styles/global.css';
+
+interface Props {
+  lang: Locale;
+  title: string;
+  description?: string;
+}
+
+const { lang, title, description } = Astro.props;
+const canonicalURL = siteConfig.siteUrl ? siteConfig.siteUrl.replace(/\/$/, '') + Astro.url.pathname : null;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description ?? siteConfig.tagline[lang]} />
+    {canonicalURL && <link rel="canonical" href={canonicalURL} />}
+    <title>{title}</title>
+  </head>
+  <body class="flex flex-col min-h-screen">
+    <Header lang={lang} />
+    <main class="flex-1"><slot /></main>
+    <Footer lang={lang} />
+    <script>
+      const hash = window.location.hash;
+      if (hash && hash.includes('type=recovery') && !window.location.pathname.includes('/update-password')) {
+        window.location.replace('/auth/update-password' + hash);
+      }
+      import Lenis from 'lenis';
+      const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+      function raf(time: number) { lenis.raf(time); requestAnimationFrame(raf); }
+      requestAnimationFrame(raf);
+      document.querySelectorAll('.reveal').forEach(el => {
+        const io = new IntersectionObserver(entries => {
+          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
+        io.observe(el);
+      });
+    </script>
+  </body>
+</html>

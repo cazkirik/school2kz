@@ -1,0 +1,56 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { Locale } from '../i18n/ui';
+
+interface NewsItem {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  image_url?: string | null;
+}
+
+interface Props {
+  item: CollectionEntry<'publications'> | NewsItem;
+  collection: 'news' | 'publications';
+  lang: Locale;
+  readMore: string;
+}
+
+const { item, collection, lang, readMore } = Astro.props;
+const isEntry = 'data' in item;
+const prefix = lang === 'ru' ? '' : '/kk';
+const href = isEntry
+  ? `${prefix}/${collection}/${item.id.split('/')[0]}/`
+  : `${prefix}/${collection}/${item.slug}/`;
+const rawDate = isEntry ? item.data.date : new Date(item.date);
+const fmtDate = new Intl.DateTimeFormat(lang === 'ru' ? 'ru-RU' : 'kk-KZ', { day: 'numeric', month: 'short', year: 'numeric' });
+const title = isEntry ? item.data.title : item.title;
+const description = isEntry ? item.data.description : item.description;
+const image = isEntry ? item.data.image : item.image_url;
+const author = isEntry && 'author' in item.data ? item.data.author : null;
+const imgSrc = image ? (typeof image === 'object' && image !== null && 'src' in image ? (image as { src: string }).src : (image as string)) : null;
+---
+
+<a class="block group bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden no-underline text-[var(--color-text-primary)] transition-all duration-300 shadow-sm h-full hover:-translate-y-1 hover:shadow-[var(--shadow-lg)] hover:border-[var(--color-primary-soft)]" href={href}>
+  <div class="aspect-[16/10] overflow-hidden bg-[var(--color-bg-soft)] relative">
+    {imgSrc ? (
+      <img src={imgSrc} alt="" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+    ) : (
+      <div class="w-full h-full bg-gradient-to-br from-[var(--color-navy-soft)] to-[var(--color-primary-soft)] flex items-center justify-center">
+        <span class="text-xs font-extrabold tracking-widest text-[var(--color-primary)]">{collection === 'news' ? (lang === 'ru' ? 'НОВОСТЬ' : 'ЖАҢАЛЫҚ') : (lang === 'ru' ? 'СТАТЬЯ' : 'МАҚАЛА')}</span>
+      </div>
+    )}
+  </div>
+  <div class="p-6 flex flex-col flex-1">
+    <div class="flex items-center gap-3 text-[13px] text-[var(--color-text-muted)] font-medium mb-2.5">
+      <time datetime={rawDate.toISOString()}>{fmtDate.format(rawDate)}</time>
+      {author && <span class="text-[var(--color-primary)] font-bold">{author}</span>}
+    </div>
+    <h3 class="text-[19px] leading-[1.35] font-bold m-0 mb-2 text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)]">{title}</h3>
+    <p class="text-[15px] text-[var(--color-text-secondary)] m-0 mb-5 leading-relaxed flex-1">{description}</p>
+    <div class="flex items-center">
+      <span class="text-sm font-bold text-[var(--color-primary)]">{readMore} &rarr;</span>
+    </div>
+  </div>
+</a>

@@ -1,0 +1,57 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+import { siteConfig } from '../siteConfig';
+
+const { lang } = Astro.props as { lang: Locale };
+const t = ui[lang];
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-[var(--color-navy)] text-[#cbd5e1] pt-16 pb-8 mt-20">
+  <div class="container">
+    <div class="grid grid-cols-[1.6fr_1fr_1fr_1.2fr] gap-12 max-lg:grid-cols-2 max-sm:grid-cols-1 max-sm:gap-8">
+      <div>
+        <div class="flex items-center gap-3 font-bold text-white text-base mb-4">
+          <img src="/emblem-taraz.png" alt="" width="44" height="44" class="w-11 h-11 rounded-full object-contain" loading="lazy" />
+          <span>{siteConfig.name[lang]}</span>
+        </div>
+        <p class="text-[#94a3b8] text-sm max-w-[300px] m-0">{siteConfig.tagline[lang]}</p>
+      </div>
+      <div>
+        <p class="text-white text-sm font-bold uppercase tracking-widest mb-5">{t.nav.home}</p>
+        <div class="flex flex-col gap-3">
+          <a class="text-[#cbd5e1] text-sm font-medium no-underline hover:text-white transition-colors" href={lang === 'ru' ? '/news/' : '/kk/news/'}>{t.news.title}</a>
+          <a class="text-[#cbd5e1] text-sm font-medium no-underline hover:text-white transition-colors" href={lang === 'ru' ? '/publications/' : '/kk/publications/'}>{t.publications.title}</a>
+          <a class="text-[#cbd5e1] text-sm font-medium no-underline hover:text-white transition-colors" href={lang === 'ru' ? '/teachers/' : '/kk/teachers/'}>{t.nav.teachers}</a>
+          <a class="text-[#cbd5e1] text-sm font-medium no-underline hover:text-white transition-colors" href={lang === 'ru' ? '/announcements/' : '/kk/announcements/'}>{t.announcements.title}</a>
+        </div>
+      </div>
+      <div>
+        <p class="text-white text-sm font-bold uppercase tracking-widest mb-5">{t.about.title}</p>
+        <div class="flex flex-col gap-3">
+          <a class="text-[#cbd5e1] text-sm font-medium no-underline hover:text-white transition-colors" href={lang === 'ru' ? '/about/' : '/kk/about/'}>{t.about.title}</a>
+          <a class="text-[#cbd5e1] text-sm font-medium no-underline hover:text-white transition-colors" href={lang === 'ru' ? '/schedule/' : '/kk/schedule/'}>{t.nav.schedule}</a>
+          <a class="text-[#cbd5e1] text-sm font-medium no-underline hover:text-white transition-colors" href={lang === 'ru' ? '/feedback/' : '/kk/feedback/'}>{t.nav.feedback}</a>
+          <a class="text-[#cbd5e1] text-sm font-medium no-underline hover:text-white transition-colors" href={lang === 'ru' ? '/contacts/' : '/kk/contacts/'}>{t.contacts.title}</a>
+        </div>
+      </div>
+      <div>
+        <p class="text-white text-sm font-bold uppercase tracking-widest mb-5">{t.contacts.title}</p>
+        <div class="flex flex-col gap-3">
+          <a class="text-[#cbd5e1] text-sm font-medium no-underline hover:text-white transition-colors" href={`tel:${siteConfig.phone.replace(/[^+\d]/g, '')}`}>{siteConfig.phone}</a>
+          <a class="text-[#cbd5e1] text-sm font-medium no-underline hover:text-white transition-colors" href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
+          <span class="text-[#94a3b8] text-sm">{lang === 'ru' ? siteConfig.address : siteConfig.addressKk}</span>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-[#ffffff14] pt-6 mt-10 flex justify-between items-center text-sm text-[#94a3b8] flex-wrap gap-4">
+      <span>&copy; {currentYear} {siteConfig.name[lang]}. {t.footer.copyright}</span>
+      <div class="flex gap-5 items-center">
+        <a class="text-[#cbd5e1] no-underline text-sm hover:text-white transition-colors" href={lang === 'ru' ? '/login' : '/kk/login'}>{lang === 'ru' ? 'Вход для сотрудников' : 'Қызметкерлерге кіру'}</a>
+        {siteConfig.socials.filter((s) => s.url && s.url !== '#').map((s) => (
+          <a class="text-[#cbd5e1] no-underline text-sm hover:text-white transition-colors" href={s.url} rel="noopener" target="_blank">{s.label}</a>
+        ))}
+      </div>
+    </div>
+  </div>
+</footer>

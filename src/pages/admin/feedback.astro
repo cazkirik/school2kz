@@ -1,0 +1,40 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { supabase } from '../../lib/supabase';
+
+const { data: feedbackList } = await supabase
+  .from('feedback')
+  .select('*')
+  .order('created_at', { ascending: false });
+const unread = (feedbackList ?? []).filter(f => !f.is_read).length;
+---
+<Admin>
+  <header class="mb-8">
+    <h1 class="text-3xl font-extrabold mb-1">Кабинет доверия</h1>
+    <p class="text-[var(--color-text-secondary)]">Анонимные обращения учеников</p>
+  </header>
+
+  <div class="flex items-center gap-3 mb-6">
+    <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-bold">Непрочитанных: {unread}</span>
+    <span class="px-3 py-1 bg-[var(--color-bg-soft)] text-[var(--color-text-secondary)] rounded-full text-sm font-bold">Всего: {feedbackList?.length ?? 0}</span>
+  </div>
+
+  <div class="flex flex-col gap-4">
+    {feedbackList?.map(item => (
+      <div class:list={['bg-white border rounded-2xl p-6 flex items-start justify-between gap-4 transition-colors shadow-sm', item.is_read ? 'border-[var(--color-border)]' : 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/20']}>
+        <div class="flex-1">
+          {!item.is_read && <span class="inline-block mb-2 px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-bold">Новое</span>}
+          <p class="text-[var(--color-text-primary)] m-0 mb-2 leading-relaxed whitespace-pre-line">{item.message}</p>
+          <time class="text-xs text-[var(--color-text-muted)]">{new Date(item.created_at).toLocaleString('ru-RU')}</time>
+        </div>
+        <form action="/api/admin/feedback/toggle" method="POST" class="inline shrink-0">
+          <input type="hidden" name="id" value={item.id} />
+          <input type="hidden" name="is_read" value={item.is_read ? 'false' : 'true'} />
+          <button class:list={['px-3 py-1.5 rounded-lg text-xs font-bold border cursor-pointer transition-colors', item.is_read ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100']} type="submit">
+            {item.is_read ? '✓ Прочитано' : 'Отметить прочитанным'}
+          </button>
+        </form>
+      </div>
+    )) || <p class="text-center text-[var(--color-text-secondary)] py-12">Обращений пока нет</p>}
+  </div>
+</Admin>

@@ -1,0 +1,139 @@
+---
+import Base from '../layouts/Base.astro';
+import { siteConfig } from '../siteConfig';
+
+const lang = 'ru';
+const rawRedirect = Astro.url.searchParams.get('redirect') || '/admin';
+const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') && !rawRedirect.includes('://') ? rawRedirect : '/admin';
+---
+<Base lang={lang} title={`Вход — ${siteConfig.name[lang]}`}>
+  <section class="py-24 min-h-[60vh] flex items-center">
+    <div class="max-w-[400px] mx-auto text-center w-full px-4">
+      <h1 class="text-3xl font-extrabold mb-2">Вход</h1>
+      <p class="text-[var(--color-text-secondary)] mb-8">Мы отправим код подтверждения на вашу почту</p>
+
+      <form id="email-form" class="flex flex-col gap-3 mb-4">
+        <input type="hidden" name="redirect" value={redirect} />
+        <input class="px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit]" type="email" name="email" placeholder="Email" required />
+        <button id="send-btn" class="px-4 py-3 bg-[var(--color-primary)] text-white border-none rounded-lg font-bold text-base cursor-pointer hover:opacity-90" type="submit">Получить код</button>
+      </form>
+      <p class="text-sm text-left -mt-2"><a href="/auth/reset-password" class="text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">Забыли пароль?</a></p>
+
+      <form id="code-form" class="flex flex-col gap-3 mb-4 hidden">
+        <p class="text-sm text-[var(--color-text-secondary)] m-0">Введите код из письма, отправленного на <strong id="code-email"></strong></p>
+        <input class="px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit] tracking-widest text-center" type="text" name="token" placeholder="Код" inputmode="numeric" autocomplete="one-time-code" required />
+        <button class="px-4 py-3 bg-[var(--color-primary)] text-white border-none rounded-lg font-bold text-base cursor-pointer hover:opacity-90" type="submit">Войти</button>
+        <button type="button" id="resend-btn" class="px-4 py-2 bg-transparent border-none rounded-lg text-sm font-semibold text-[var(--color-primary)] cursor-pointer hover:underline">Отправить код заново</button>
+      </form>
+
+      <p class="mt-6 text-sm text-[var(--color-text-secondary)]">Нет аккаунта? <a href="/auth/signup" class="text-[var(--color-primary)] font-semibold">Зарегистрироваться</a></p>
+      <p id="auth-message" class="mt-4 px-4 py-3 rounded-lg font-medium hidden"></p>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { supabase } from '../lib/supabase';
+  const emailForm = document.getElementById('email-form') as HTMLFormElement | null;
+  const codeForm = document.getElementById('code-form') as HTMLFormElement | null;
+  const resendBtn = document.getElementById('resend-btn') as HTMLButtonElement | null;
+  const msg = document.getElementById('auth-message') as HTMLElement | null;
+  const codeEmail = document.getElementById('code-email') as HTMLElement | null;
+  const rawRedirect = new URLSearchParams(window.location.search).get('redirect') || '/admin';
+  const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') && !rawRedirect.includes('://') ? rawRedirect : '/admin';
+  let pendingEmail = '';
+  let cooldownUntil = 0;
+
+  function showMsg(text: string, type: string) {
+    if (!msg) return;
+    msg.textContent = text;
+    msg.className = `mt-4 px-4 py-3 rounded-lg font-medium ${type === 'error' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`;
+    msg.hidden = false;
+  }
+
+  function armCooldown(seconds: number) {
+    cooldownUntil = Date.now() + seconds * 1000;
+    const sendBtn = emailForm?.querySelector('#send-btn') as HTMLButtonElement | null;
+    const tick = () => {
+      const left = Math.ceil((cooldownUntil - Date.now()) / 1000);
+      if (left <= 0) {
+        if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Получить код'; }
+        if (resendBtn) { resendBtn.disabled = false; resendBtn.textContent = 'Отправить код заново'; }
+        return;
+      }
+      if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = `Подождите ${left} с`; }
+      if (resendBtn) { resendBtn.disabled = true; resendBtn.textContent = `Подождите ${left} с`; }
+      setTimeout(tick, 1000);
+    };
+    tick();
+  }
+
+  function setLoggedIn(session: any) {
+    document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=3600; samesite=lax`;
+    document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=86400; samesite=lax`;
+  }
+
+  async function routeByRole(userId: string) {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single();
+    const isAdmin = profile && ['super_admin', 'moderator', 'editor'].includes(profile.role);
+    const target = isAdmin ? (redirect && redirect !== '/admin' ? redirect : '/admin') : '/cabinet';
+    window.location.href = target;
+  }
+
+  if (emailForm) emailForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(emailForm);
+    pendingEmail = (fd.get('email') as string).trim();
+    if (!pendingEmail) return;
+    const btn = emailForm.querySelector('button') as HTMLButtonElement;
+    btn.disabled = true; btn.textContent = 'Отправка...';
+    const { error } = await supabase.auth.signInWithOtp({ email: pendingEmail });
+    if (error) {
+      if (error.status === 429) {
+        showMsg('Слишком много запросов на этот email. Подождите несколько минут — Supabase ограничивает отправку писем.', 'error');
+        armCooldown(60);
+      } else {
+        showMsg('Ошибка: ' + error.message, 'error');
+        btn.disabled = false; btn.textContent = 'Получить код';
+      }
+    }
+    else {
+      showMsg('Код отправлен на почту. Проверьте письмо.', 'ok');
+      emailForm.classList.add('hidden');
+      codeForm?.classList.remove('hidden');
+      if (codeEmail) codeEmail.textContent = pendingEmail;
+      const codeInput = codeForm?.querySelector('input[name="token"]') as HTMLInputElement | null;
+      codeInput?.focus();
+    }
+  });
+
+  if (codeForm) codeForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(codeForm);
+    const token = (fd.get('token') as string).trim();
+    if (!pendingEmail || !token) return;
+    const btn = codeForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.disabled = true; btn.textContent = 'Вход...';
+    const { data, error } = await supabase.auth.verifyOtp({ email: pendingEmail, token, type: 'email' });
+    if (error) { showMsg('Ошибка: ' + error.message, 'error'); btn.disabled = false; btn.textContent = 'Войти'; }
+    else if (data.session) {
+      setLoggedIn(data.session);
+      await routeByRole(data.session.user.id);
+    } else {
+      showMsg('Не удалось войти. Попробуйте ещё раз.', 'error');
+      btn.disabled = false; btn.textContent = 'Войти';
+    }
+  });
+
+  if (resendBtn) resendBtn.addEventListener('click', async () => {
+    if (!pendingEmail) return;
+    if (Date.now() < cooldownUntil) return;
+    resendBtn.disabled = true; resendBtn.textContent = 'Отправка...';
+    const { error } = await supabase.auth.signInWithOtp({ email: pendingEmail });
+    if (error) {
+      if (error.status === 429) { showMsg('Слишком много запросов. Подождите несколько минут.', 'error'); armCooldown(60); }
+      else { showMsg('Ошибка: ' + error.message, 'error'); resendBtn.disabled = false; resendBtn.textContent = 'Отправить код заново'; }
+    }
+    else { showMsg('Код отправлен заново. Проверьте письмо.', 'ok'); armCooldown(60); }
+  });
+</script>

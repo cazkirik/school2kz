@@ -1,0 +1,31 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+interface Props {
+  teacher: {
+    id: number;
+    full_name: string;
+    subject: string;
+    experience: number | null;
+    photo_url: string | null;
+  };
+  lang: Locale;
+}
+const { teacher, lang } = Astro.props;
+const t = ui[lang].teachers;
+---
+<div class="bg-white border border-[var(--color-border)] rounded-2xl overflow-hidden transition-all duration-300 shadow-sm h-full hover:-translate-y-1 hover:shadow-[var(--shadow-lg)] hover:border-[var(--color-primary-soft)]">
+  <div class="aspect-square overflow-hidden bg-[var(--color-bg-soft)]">
+    {teacher.photo_url ? (
+      <img src={teacher.photo_url} alt={teacher.full_name} class="w-full h-full object-cover" loading="lazy" />
+    ) : (
+      <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-primary)]">
+        <div class="text-6xl font-extrabold text-white">{teacher.full_name.charAt(0)}</div>
+      </div>
+    )}
+  </div>
+  <div class="p-6">
+    <div class="text-lg font-bold mb-1">{teacher.full_name}</div>
+    <div class="text-[var(--color-text-secondary)] text-sm mb-3">{teacher.subject}</div>
+    {teacher.experience ? <p class="text-[var(--color-text-muted)] text-sm m-0">{teacher.experience} {t.yearsExperience}</p> : ''}
+  </div>
+</div>

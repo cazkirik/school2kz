@@ -1,0 +1,35 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+import PostCard from './PostCard.astro';
+import { supabase } from '../lib/supabase';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = ui[lang];
+
+const { data: news } = await supabase
+  .from('news')
+  .select('id, slug, title, description, date, image_url')
+  .eq('lang', lang)
+  .order('date', { ascending: false });
+---
+
+<section class="py-20">
+  <div class="container">
+    <div class="text-center mb-12 reveal">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-[var(--color-primary)] bg-[var(--color-primary-soft)] mb-4">{t.news.title}</span>
+      <h2 class="text-[clamp(28px,4vw,38px)] font-extrabold">{t.news.title}</h2>
+    </div>
+    {news && news.length > 0 ? (
+      <div class="grid grid-cols-3 gap-7 max-lg:grid-cols-1">
+        {news.map((n, i) => (
+          <div class="reveal" style={`transition-delay:${i * 70}ms`}>
+            <PostCard item={n} collection="news" lang={lang} readMore={t.news.readMore} />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p class="text-center text-[var(--color-text-secondary)]">{t.news.empty}</p>
+    )}
+  </div>
+</section>
