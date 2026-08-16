@@ -51,7 +51,9 @@ export const POST: APIRoute = async ({ request }) => {
           <p style="color:#111827;margin:0;white-space:pre-wrap">${message}</p>
         </div>
       </div>`;
-    await sendMail(notifyTo, 'Новое обращение в кабинет доверия', html).catch(() => {});
+    await sendMail(notifyTo, 'Новое обращение в кабинет доверия', html).catch((e) => {
+      console.error('SMTP notification failed:', e?.message || e);
+    });
   }
 
   return new Response(JSON.stringify({ message: 'Сообщение успешно отправлено!' }), { status: 200 });
