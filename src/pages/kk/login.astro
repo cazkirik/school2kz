@@ -12,21 +12,15 @@ const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') &&
   <section class="py-24 min-h-[60vh] flex items-center">
     <div class="max-w-[400px] mx-auto text-center w-full px-4">
       <h1 class="text-3xl font-extrabold mb-2">{t.login}</h1>
-      <p class="text-[var(--color-text-secondary)] mb-8">Растау кодын поштаңызға жібереміз</p>
+      <p class="text-[var(--color-text-secondary)] mb-8">Email мен құпиясөзді енгізіңіз</p>
 
-      <form id="email-form" class="flex flex-col gap-3 mb-4">
+      <form id="login-form" class="flex flex-col gap-3 mb-4">
         <input type="hidden" name="redirect" value={redirect} />
         <input class="px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit]" type="email" name="email" placeholder="Email" required />
-        <button id="send-btn" class="px-4 py-3 bg-[var(--color-primary)] text-white border-none rounded-lg font-bold text-base cursor-pointer hover:opacity-90" type="submit">Код алу</button>
+        <input class="px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit]" type="password" name="password" placeholder="Құпиясөз" required />
+        <button id="login-btn" class="px-4 py-3 bg-[var(--color-primary)] text-white border-none rounded-lg font-bold text-base cursor-pointer hover:opacity-90" type="submit">Кіру</button>
       </form>
       <p class="text-sm text-left -mt-2"><a href="/kk/auth/reset-password" class="text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">Құпиясөзді ұмыттыңыз ба?</a></p>
-
-      <form id="code-form" class="flex flex-col gap-3 mb-4 hidden">
-        <p class="text-sm text-[var(--color-text-secondary)] m-0"><strong id="code-email"></strong> поштасына жіберілген кодты енгізіңіз</p>
-        <input class="px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit] tracking-widest text-center" type="text" name="token" placeholder="Код" inputmode="numeric" autocomplete="one-time-code" required />
-        <button class="px-4 py-3 bg-[var(--color-primary)] text-white border-none rounded-lg font-bold text-base cursor-pointer hover:opacity-90" type="submit">{t.login}</button>
-        <button type="button" id="resend-btn" class="px-4 py-2 bg-transparent border-none rounded-lg text-sm font-semibold text-[var(--color-primary)] cursor-pointer hover:underline">Кодты қайта жіберу</button>
-      </form>
 
       <p class="mt-6 text-sm text-[var(--color-text-secondary)]">
         <a class="text-[var(--color-primary)] font-semibold" href="/login">Рус</a>
@@ -38,38 +32,16 @@ const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') &&
 
 <script>
   import { supabase } from '../../lib/supabase';
-  const emailForm = document.getElementById('email-form') as HTMLFormElement | null;
-  const codeForm = document.getElementById('code-form') as HTMLFormElement | null;
-  const resendBtn = document.getElementById('resend-btn') as HTMLButtonElement | null;
+  const loginForm = document.getElementById('login-form') as HTMLFormElement | null;
   const msg = document.getElementById('auth-message') as HTMLElement | null;
-  const codeEmail = document.getElementById('code-email') as HTMLElement | null;
   const rawRedirect = new URLSearchParams(window.location.search).get('redirect') || '/admin';
   const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') && !rawRedirect.includes('://') ? rawRedirect : '/admin';
-  let pendingEmail = '';
-  let cooldownUntil = 0;
 
   function showMsg(text: string, type: string) {
     if (!msg) return;
     msg.textContent = text;
     msg.className = `mt-4 px-4 py-3 rounded-lg font-medium ${type === 'error' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`;
     msg.hidden = false;
-  }
-
-  function armCooldown(seconds: number) {
-    cooldownUntil = Date.now() + seconds * 1000;
-    const sendBtn = emailForm?.querySelector('#send-btn') as HTMLButtonElement | null;
-    const tick = () => {
-      const left = Math.ceil((cooldownUntil - Date.now()) / 1000);
-      if (left <= 0) {
-        if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Код алу'; }
-        if (resendBtn) { resendBtn.disabled = false; resendBtn.textContent = 'Кодты қайта жіберу'; }
-        return;
-      }
-      if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = `${left} с күтіңіз`; }
-      if (resendBtn) { resendBtn.disabled = true; resendBtn.textContent = `${left} с күтіңіз`; }
-      setTimeout(tick, 1000);
-    };
-    tick();
   }
 
   function setLoggedIn(session: any) {
@@ -84,60 +56,21 @@ const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') &&
     window.location.href = target;
   }
 
-  if (emailForm) emailForm.addEventListener('submit', async (e) => {
+  if (loginForm) loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const fd = new FormData(emailForm);
-    pendingEmail = (fd.get('email') as string).trim();
-    if (!pendingEmail) return;
-    const btn = emailForm.querySelector('button') as HTMLButtonElement;
-    btn.disabled = true; btn.textContent = 'Жіберілуде...';
-    const { error } = await supabase.auth.signInWithOtp({ email: pendingEmail });
-    if (error) {
-      if (error.status === 429) {
-        showMsg('Бұл email-ге сұраныс тым көп. Бірнеше минут күтіңіз — Supabase хат жіберуді шектейді.', 'error');
-        armCooldown(60);
-      } else {
-        showMsg('Қате: ' + error.message, 'error');
-        btn.disabled = false; btn.textContent = 'Код алу';
-      }
-    }
-    else {
-      showMsg('Код поштаға жіберілді. Хатты тексеріңіз.', 'ok');
-      emailForm.classList.add('hidden');
-      codeForm?.classList.remove('hidden');
-      if (codeEmail) codeEmail.textContent = pendingEmail;
-      const codeInput = codeForm?.querySelector('input[name="token"]') as HTMLInputElement | null;
-      codeInput?.focus();
-    }
-  });
-
-  if (codeForm) codeForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(codeForm);
-    const token = (fd.get('token') as string).trim();
-    if (!pendingEmail || !token) return;
-    const btn = codeForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const fd = new FormData(loginForm);
+    const email = (fd.get('email') as string).trim();
+    const password = fd.get('password') as string;
+    if (!email || !password) return;
+    const btn = loginForm.querySelector('button') as HTMLButtonElement;
     btn.disabled = true; btn.textContent = 'Кіру...';
-    const { data, error } = await supabase.auth.verifyOtp({ email: pendingEmail, token, type: 'email' });
-    if (error) { showMsg('Қате: ' + error.message, 'error'); btn.disabled = false; btn.textContent = 'Кіру'; }
-    else if (data.session) {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+        showMsg('Қате: ' + error.message, 'error');
+        btn.disabled = false; btn.textContent = 'Кіру';
+    } else if (data.session) {
       setLoggedIn(data.session);
       await routeByRole(data.session.user.id);
-    } else {
-      showMsg('Кіру мүмкін болмады. Қайта көріңіз.', 'error');
-      btn.disabled = false; btn.textContent = 'Кіру';
     }
-  });
-
-  if (resendBtn) resendBtn.addEventListener('click', async () => {
-    if (!pendingEmail) return;
-    if (Date.now() < cooldownUntil) return;
-    resendBtn.disabled = true; resendBtn.textContent = 'Жіберілуде...';
-    const { error } = await supabase.auth.signInWithOtp({ email: pendingEmail });
-    if (error) {
-      if (error.status === 429) { showMsg('Сұраныс тым көп. Бірнеше минут күтіңіз.', 'error'); armCooldown(60); }
-      else { showMsg('Қате: ' + error.message, 'error'); resendBtn.disabled = false; resendBtn.textContent = 'Кодты қайта жіберу'; }
-    }
-    else { showMsg('Код қайта жіберілді. Поштаңызды тексеріңіз.', 'ok'); armCooldown(60); }
   });
 </script>
