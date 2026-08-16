@@ -1,7 +1,6 @@
 ---
 import { ui, type Locale } from '../i18n/ui';
 import { marked } from 'marked';
-import sanitizeHtml from 'sanitize-html';
 
 interface Props {
   lang: Locale;
@@ -13,14 +12,19 @@ interface Props {
     image_url?: string | null;
   };
 }
+
+function sanitize(html: string): string {
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '')
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/javascript:/gi, '');
+}
+
 const { lang, news } = Astro.props;
 const t = ui[lang];
 const prefix = lang === 'ru' ? '' : '/kk';
-const contentHtml = sanitizeHtml(marked.parse(news.content) as string, {
-  allowedTags: ['p', 'br', 'strong', 'em', 'b', 'i', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
-  allowedAttributes: { a: ['href', 'target', 'rel'] },
-  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
-});
+const contentHtml = sanitize(String(marked.parse(news.content)));
 const fmtDate = new Intl.DateTimeFormat(lang === 'ru' ? 'ru-RU' : 'kk-KZ', { day: 'numeric', month: 'long', year: 'numeric' });
 ---
 
