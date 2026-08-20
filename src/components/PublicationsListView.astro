@@ -48,6 +48,6 @@ const items = (await getCollection('publications'))
       card.style.display = hit ? '' : 'none';
       if (hit) visible++;
     });
-    if (emptyEl) emptyEl.hidden = visible !== 0;
+    if (emptyEl) emptyEl.hidden = visible === 0;
   });
 </script>
