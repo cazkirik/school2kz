@@ -23,6 +23,14 @@ if (Astro.request.method === 'POST') {
   try {
     const formData = await Astro.request.formData();
     const action = formData.get('action') || 'create';
+    if (action === 'delete') {
+      const id = formData.get('id');
+      if (!id) throw new Error('Не указан id');
+      const { error: dbErr } = await supabase.from('clubs').delete().eq('id', id);
+      if (dbErr) throw dbErr;
+      success = 'Кружок удалён!';
+      return;
+    }
     const parsed = clubSchema.parse({
       title: formData.get('title'),
       description: formData.get('description'),
@@ -97,7 +105,14 @@ const { data: clubs } = await supabase.from('clubs').select('*').order('sort_ord
             <h3 class="text-base font-bold m-0">{club.title}</h3>
             <span class="text-[11px] font-bold px-2 py-0.5 bg-[var(--color-primary-soft)] text-[var(--color-primary)] rounded-full inline-block mt-1">{club.lang === 'ru' ? 'RU' : 'KK'}</span>
           </div>
-          <a href={`/admin/clubs?edit=${club.id}`} class="px-3 py-1.5 bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-lg text-xs font-bold no-underline hover:bg-[var(--color-primary-soft)] transition-colors shrink-0">Изменить</a>
+          <div class="flex gap-2 shrink-0">
+            <a href={`/admin/clubs?edit=${club.id}`} class="px-3 py-1.5 bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-lg text-xs font-bold no-underline hover:bg-[var(--color-primary-soft)] transition-colors">Изменить</a>
+            <form method="POST" onsubmit="return confirm('Удалить кружок?')">
+              <input type="hidden" name="action" value="delete" />
+              <input type="hidden" name="id" value={club.id} />
+              <button class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold cursor-pointer hover:bg-red-100 transition-colors" type="submit">Удалить</button>
+            </form>
+          </div>
         </div>
         <p class="text-sm text-[var(--color-text-secondary)] m-0 mb-3 whitespace-pre-line line-clamp-3">{club.description || '—'}</p>
         <div class="text-xs text-[var(--color-text-secondary)] flex flex-col gap-1">
