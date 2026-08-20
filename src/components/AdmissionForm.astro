@@ -21,7 +21,7 @@ const msgs = {
       <p class="text-[var(--color-text-secondary)] m-0">{t.subtitle}</p>
     </div>
 
-    <form id="admission-form" class="bg-white border border-[var(--color-border)] rounded-2xl p-8 shadow-sm mb-6" novalidate data-msgs={JSON.stringify(msgs)}>
+    <form id="admission-form" class="bg-white border border-[var(--color-border)] rounded-2xl p-8 shadow-sm mb-6" novalidate data-msgs={JSON.stringify(msgs)} data-lang={lang}>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
         <div class="md:col-span-2">
           <label for="child-name" class="block text-sm font-bold mb-1.5">{t.childName} <span class="text-red-500">*</span></label>
@@ -70,6 +70,7 @@ const msgs = {
   const successEl = document.getElementById('form-success');
   const submitBtn = document.getElementById('submit-btn');
   const msgs = JSON.parse(form?.dataset.msgs ?? '{}');
+  const formLang = form?.dataset.lang ?? 'ru';
 
   function show(el, text, ok) {
     if (!el) return;
@@ -99,7 +100,7 @@ const msgs = {
       const res = await fetch('/api/admission', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ child_name: childName, birth_date: birthDate, parent_name: parentName, phone, email, grade, lang })
+        body: JSON.stringify({ child_name: childName, birth_date: birthDate, parent_name: parentName, phone, email, grade, lang: formLang })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || msgs.error);
