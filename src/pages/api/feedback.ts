@@ -9,7 +9,7 @@ const feedbackSchema = z.object({
 });
 
 const submitted: Map<string, number[]> = new Map();
-const LIMIT = 3;
+const LIMIT = 20;
 const WINDOW_MS = 10 * 60 * 1000;
 
 export const POST: APIRoute = async ({ request }) => {
