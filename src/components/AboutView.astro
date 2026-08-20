@@ -54,7 +54,7 @@ const content = {
         <p class="text-lg text-[var(--color-text-secondary)] leading-relaxed m-0">{content.intro}</p>
       </div>
       <div class="aspect-[4/3] rounded-2xl overflow-hidden shadow-[var(--shadow-lg)] reveal">
-        <img src="/images/hero-school.jpg" alt={siteConfig.name[lang]} width="800" height="600" class="w-full h-full object-cover" loading="lazy" />
+        <img src="/images/school-1.jpg" alt={siteConfig.name[lang]} width="800" height="600" class="w-full h-full object-cover" loading="lazy" />
       </div>
     </div>
 
@@ -72,12 +72,12 @@ const content = {
       <h3 class="text-[28px] font-extrabold m-0 mb-7 reveal">{lang === 'ru' ? 'Наша школа в фотографиях' : 'Мектеп фотосуреттерде'}</h3>
       <div class="grid grid-cols-3 gap-5 max-md:grid-cols-1">
         {[
-          { src: '/images/hero-school.jpg', alt: lang === 'ru' ? 'Здание школы' : 'Мектеп ғимараты' },
-          { src: '/images/classroom.jpg', alt: lang === 'ru' ? 'Учебный класс' : 'Оқу сыныбы' },
-          { src: '/images/library.jpg', alt: lang === 'ru' ? 'Библиотека' : 'Кітапхана' },
-          { src: '/images/science-lab.jpg', alt: lang === 'ru' ? 'Кабинет естественных наук' : 'Жаратылыстану кабинеті' },
-          { src: '/images/sports.jpg', alt: lang === 'ru' ? 'Спортивный зал' : 'Спорт залы' },
-          { src: '/images/students.jpg', alt: lang === 'ru' ? 'Учащиеся школы' : 'Мектеп оқушылары' },
+          { src: '/images/school-1.jpg', alt: lang === 'ru' ? 'Здание школы' : 'Мектеп ғимараты' },
+          { src: '/images/school-2.jpg', alt: lang === 'ru' ? 'Наша школа' : 'Біздің мектеп' },
+          { src: '/images/school-3.jpg', alt: lang === 'ru' ? 'Школьные будни' : 'Мектеп күндері' },
+          { src: '/images/school-4.jpg', alt: lang === 'ru' ? 'Уроки и перемены' : 'Сабақтар мен үзілістер' },
+          { src: '/images/school-5.jpg', alt: lang === 'ru' ? 'Наш коллектив' : 'Біздің ұжым' },
+          { src: '/images/school-6.jpg', alt: lang === 'ru' ? 'Моменты жизни школы' : 'Мектеп өмірінің сәттері' },
         ].map((img) => (
           <div class="aspect-[4/3] rounded-2xl overflow-hidden shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1 reveal">
             <img src={img.src} alt={img.alt} class="w-full h-full object-cover" loading="lazy" />
