@@ -4,12 +4,20 @@ import { supabase } from '../lib/supabase';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
-const t = ui[lang].schedule;
+const t = ui[lang];
+const bell = ui[lang].bell;
 
 const { data: schedules } = await supabase
   .from('schedules')
   .select('class_name, day_of_week, lesson_number, subject_name, teacher_name, room')
   .order('day_of_week')
+  .order('lesson_number');
+
+const { data: bells } = await supabase
+  .from('bell_schedule')
+  .select('*')
+  .eq('lang', lang)
+  .order('shift')
   .order('lesson_number');
 
 const classes = Array.from(new Set((schedules ?? []).map(s => s.class_name))).sort();
@@ -19,28 +27,53 @@ const DAYS = {
   kk: ['Дүйсенбі', 'Сейсенбі', 'Сәрсенбі', 'Бейсенбі', 'Жұма', 'Сенбі'],
 } as const;
 
-const LESSON_TIMES = [
-  '08:00 – 08:45',
-  '08:55 – 09:40',
-  '09:50 – 10:35',
-  '10:55 – 11:40',
-  '11:50 – 12:35',
-  '13:00 – 13:45',
-  '13:55 – 14:40',
-  '14:50 – 15:35',
-  '15:50 – 16:35',
-];
+const firstShift = (bells ?? []).filter(b => b.shift === 'first');
+const secondShift = (bells ?? []).filter(b => b.shift === 'second');
+const LESSON_TIMES = Object.fromEntries(
+  firstShift.map(b => [b.lesson_number, `${b.start_time} – ${b.end_time}`])
+);
 ---
 
 <section class="py-16">
   <div class="container">
-    <h1 class="text-[clamp(28px,4vw,38px)] font-extrabold mb-8">{t.title}</h1>
+    <h1 class="text-[clamp(28px,4vw,38px)] font-extrabold mb-8">{t.schedule.title}</h1>
+
+    <div class="mb-14">
+      <h2 class="text-2xl font-bold mb-6">{bell.title}</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[900px]">
+        {[{ label: bell.firstShift, items: firstShift }, { label: bell.secondShift, items: secondShift }].map(shift => (
+          <div class="bg-white border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-sm">
+            <h3 class="px-5 py-3 bg-[var(--color-bg-soft)] font-bold text-[var(--color-text-primary)] border-b border-[var(--color-border)] m-0">{shift.label}</h3>
+            {shift.items.length === 0 ? (
+              <p class="text-[var(--color-text-secondary)] text-center py-6 m-0">—</p>
+            ) : (
+              <table class="w-full border-collapse text-sm">
+                <thead>
+                  <tr>
+                    <th class="px-5 py-2 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">{bell.lesson}</th>
+                    <th class="px-5 py-2 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">{bell.time}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shift.items.map(b => (
+                    <tr class="border-t border-[var(--color-border)]">
+                      <td class="px-5 py-2.5 font-semibold text-[var(--color-text-primary)]">{b.lesson_number}</td>
+                      <td class="px-5 py-2.5 text-[var(--color-text-secondary)]">{b.start_time} – {b.end_time}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
 
     {classes.length === 0 ? (
-      <p class="text-center text-[var(--color-text-secondary)] py-12">{t.empty}</p>
+      <p class="text-center text-[var(--color-text-secondary)] py-12">{t.schedule.empty}</p>
     ) : (
       <>
-        <label class="block mb-6 text-base font-bold" for="class-select">{t.selectClass}</label>
+        <label class="block mb-6 text-base font-bold" for="class-select">{t.schedule.selectClass}</label>
         <select id="class-select" class="px-4 py-2.5 border border-[var(--color-border)] rounded-lg text-base font-[inherit] text-[var(--color-text-primary)] mb-8">
           {classes.map(cls => (
             <option value={cls}>{cls}</option>
@@ -64,9 +97,9 @@ const LESSON_TIMES = [
                         <table class="w-full border-collapse text-sm">
                           <thead>
                             <tr>
-                              <th class="px-3 py-2 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider w-10">{t.lesson}</th>
-                              <th class="px-3 py-2 text-left text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">{t.subject}</th>
-                              <th class="px-3 py-2 text-left text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">{t.time}</th>
+                              <th class="px-3 py-2 text-left font-bold text-[var(--color-text-secondary)] text-xs uppercase tracking-wider w-10">{t.schedule.lesson}</th>
+                              <th class="px-3 py-2 text-left text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">{t.schedule.subject}</th>
+                              <th class="px-3 py-2 text-left text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">{t.schedule.time}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -78,7 +111,7 @@ const LESSON_TIMES = [
                                   {s.teacher_name ? <div class="text-xs text-[var(--color-text-secondary)] mt-0.5">{s.teacher_name}</div> : ''}
                                 </td>
                                 <td class="px-3 py-2.5 text-[var(--color-text-secondary)] whitespace-nowrap">
-                                  {LESSON_TIMES[s.lesson_number - 1]}
+                                  {LESSON_TIMES[s.lesson_number] ?? '—'}
                                   {s.room ? <span class="block text-xs mt-0.5">каб. {s.room}</span> : ''}
                                 </td>
                               </tr>

@@ -1,0 +1,10 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdmissionForm from '../../components/AdmissionForm.astro';
+import { siteConfig } from '../../siteConfig';
+import { ui } from '../../i18n/ui';
+const t = ui.kk;
+---
+<Base lang="kk" title={`${t.admission.title} — ${siteConfig.name.kk}`}>
+  <AdmissionForm lang="kk" />
+</Base>

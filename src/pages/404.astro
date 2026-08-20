@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import { siteConfig } from '../siteConfig';
+const lang = 'ru';
+---
+<Base lang={lang} title={`404 — ${siteConfig.name[lang]}`}>
+  <section class="py-24 md:py-32">
+    <div class="container text-center">
+      <p class="text-[clamp(80px,15vw,160px)] font-extrabold leading-none m-0 text-[var(--color-primary)] opacity-15">404</p>
+      <h1 class="text-[clamp(26px,4vw,36px)] font-extrabold mt-4 mb-3">{lang === 'ru' ? 'Страница не найдена' : 'Бет табылмады'}</h1>
+      <p class="text-[var(--color-text-secondary)] text-lg max-w-[480px] mx-auto m-0 mb-8">
+        {lang === 'ru' ? 'Возможно, страница была перемещена или удалена. Вернитесь на главную — там всё самое важное.' : 'Мүмкін, бет жылжытылған немесе жойылған. Бас бетке оралыңыз — онда ең маңыздысының бәрі бар.'}
+      </p>
+      <div class="flex items-center justify-center gap-3">
+        <a href="/" class="inline-flex items-center gap-2 px-7 py-3 bg-[var(--color-primary)] text-white rounded-2xl font-bold no-underline hover:bg-[var(--color-primary-hover)] transition-colors">
+          {lang === 'ru' ? 'На главную' : 'Бас бетке'}
+        </a>
+        <a href={lang === 'ru' ? '/contacts/' : '/kk/contacts/'} class="inline-flex items-center gap-2 px-7 py-3 bg-white border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-2xl font-bold no-underline hover:border-[var(--color-primary-soft)] transition-colors">
+          {lang === 'ru' ? 'Контакты' : 'Байланыс'}
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>

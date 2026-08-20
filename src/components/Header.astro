@@ -14,9 +14,12 @@ const links = [
   { href: lang === 'ru' ? '/publications/' : '/kk/publications/', label: t.nav.publications, active: path.startsWith('/publications') || path.startsWith('/kk/publications') },
   { href: lang === 'ru' ? '/schedule/' : '/kk/schedule/', label: t.nav.schedule, active: path.startsWith('/schedule') || path.startsWith('/kk/schedule') },
   { href: lang === 'ru' ? '/teachers/' : '/kk/teachers/', label: t.nav.teachers, active: path.startsWith('/teachers') || path.startsWith('/kk/teachers') },
+  { href: lang === 'ru' ? '/clubs/' : '/kk/clubs/', label: t.nav.clubs, active: path.startsWith('/clubs') || path.startsWith('/kk/clubs') },
+  { href: lang === 'ru' ? '/documents/' : '/kk/documents/', label: t.nav.documents, active: path.startsWith('/documents') || path.startsWith('/kk/documents') },
   { href: lang === 'ru' ? '/feedback/' : '/kk/feedback/', label: t.nav.feedback, active: path.startsWith('/feedback') || path.startsWith('/kk/feedback') },
   { href: lang === 'ru' ? '/about/' : '/kk/about/', label: t.nav.about, active: path.startsWith('/about') || path.startsWith('/kk/about') },
   { href: lang === 'ru' ? '/contacts/' : '/kk/contacts/', label: t.nav.contacts, active: path.startsWith('/contacts') || path.startsWith('/kk/contacts') },
+  { href: lang === 'ru' ? '/admission/' : '/kk/admission/', label: t.nav.admission, active: path.startsWith('/admission') || path.startsWith('/kk/admission'), primary: true },
 ];
 ---
 
@@ -27,10 +30,14 @@ const links = [
       <span class="truncate">{siteConfig.name[lang]}</span>
     </a>
     <nav class="hidden xl:block" aria-label="Основная навигация">
-      <ul class="flex gap-6 list-none m-0 p-0">
+      <ul class="flex gap-5 list-none m-0 p-0 items-center">
         {links.map((l) => (
           <li>
-            <a class:list={['text-[14.5px] font-semibold text-[var(--color-text-secondary)] no-underline hover:text-[var(--color-primary)] transition-colors whitespace-nowrap', { 'text-[var(--color-primary)]': l.active }]} href={l.href}>{l.label}</a>
+            {l.primary ? (
+              <a class="inline-flex items-center bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg text-[13px] font-bold no-underline hover:bg-[var(--color-primary-hover)] transition-colors whitespace-nowrap" href={l.href}>{l.label}</a>
+            ) : (
+              <a class:list={['text-[14px] font-semibold text-[var(--color-text-secondary)] no-underline hover:text-[var(--color-primary)] transition-colors whitespace-nowrap', { 'text-[var(--color-primary)]': l.active }]} href={l.href}>{l.label}</a>
+            )}
           </li>
         ))}
       </ul>

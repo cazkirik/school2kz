@@ -2,12 +2,15 @@
 import Base from '../../layouts/Base.astro';
 import { siteConfig } from '../../siteConfig';
 import { supabase } from '../../lib/supabase';
+import { roleLabel } from '../../lib/roles';
 
 const lang = 'kk';
 
 let profile: any = null;
+let email: string | null = null;
 let schedules: any[] = [];
 let announcements: any[] = [];
+let applications: any[] = [];
 
 const accessToken = Astro.cookies.get('sb-access-token')?.value;
 const refreshToken = Astro.cookies.get('sb-refresh-token')?.value;
@@ -18,15 +21,22 @@ if (accessToken && refreshToken) {
     refresh_token: refreshToken
   });
   if (session) {
-    const { data: p } = await supabase.from('profiles').select('id, full_name, role').eq('id', session.user.id).single();
+    email = session.user.email ?? null;
+    const { data: p } = await supabase.from('profiles').select('id, full_name, role, banned').eq('id', session.user.id).single();
     profile = p;
     if (profile?.role === 'student' || profile?.role === 'parent') {
       const { data: s } = await supabase.from('schedules').select('class_name, day_of_week, lesson_number, subject_name, teacher_name, room').order('day_of_week').order('lesson_number');
       schedules = s ?? [];
     }
-    if (profile?.role === 'student' || profile?.role === 'parent' || profile?.role === 'teacher') {
-      const { data: a } = await supabase.from('announcements').select('id, title, content, audience, pinned, date').eq('lang', 'kk').in('audience', ['all', profile.role === 'teacher' ? 'teachers' : profile.role === 'parent' ? 'parents' : 'students']).order('date', { ascending: false });
+    const audience = profile?.role === 'teacher' ? 'teachers' : profile?.role === 'parent' ? 'parents' : profile?.role === 'student' ? 'students' : 'all';
+    if (['student', 'parent', 'teacher'].includes(profile?.role)) {
+      const { data: a } = await supabase.from('announcements').select('id, title, content, audience, pinned, date').eq('lang', 'kk').in('audience', ['all', audience]).order('date', { ascending: false });
       announcements = a ?? [];
+    }
+    if (profile?.role === 'parent') {
+      const { data: ap } = await supabase.from('applications').select('*').order('created_at', { ascending: false });
+      const ownPhone = email?.split('@')[0];
+      applications = (ap ?? []).filter(a => a.phone.replace(/\D/g, '').slice(-4) === (ownPhone?.slice(-4) ?? '___'));
     }
   }
 }
@@ -34,6 +44,7 @@ if (accessToken && refreshToken) {
 const classes = Array.from(new Set(schedules.map(s => s.class_name))).sort();
 const DAYS = ['Дүйсенбі', 'Сейсенбі', 'Сәрсенбі', 'Бейсенбі', 'Жұма', 'Сенбі'];
 const LESSON_TIMES = ['08:00 – 08:45','08:55 – 09:40','09:50 – 10:35','10:55 – 11:40','11:50 – 12:35','13:00 – 13:45','13:55 – 14:40','14:50 – 15:35'];
+const STATUS_LABELS: Record<string, string> = { new: 'Жаңа', reviewed: 'Қаралуда', accepted: 'Қабылданды', rejected: 'Қабылданбады' };
 ---
 <Base lang={lang} title={`Кабинет — ${siteConfig.name[lang]}`}>
   <section class="py-16">
@@ -49,9 +60,32 @@ const LESSON_TIMES = ['08:00 – 08:45','08:55 – 09:40','09:50 – 10:35','10:
           <div class="flex items-center justify-between mb-10">
             <div>
               <h1 class="text-3xl font-extrabold mb-1">Жеке кабинет</h1>
-              <p class="text-[var(--color-text-secondary)]">{profile.full_name} · {profile.role}</p>
+              <p class="text-[var(--color-text-secondary)]">{profile.full_name} · {roleLabel(profile.role)}</p>
             </div>
             {['super_admin','moderator','editor'].includes(profile.role) && <a href="/admin" class="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-bold no-underline hover:bg-[var(--color-primary-hover)]">Админ-панель</a>}
+          </div>
+
+          <div class="bg-white border border-[var(--color-border)] rounded-2xl p-6 shadow-sm mb-10">
+            <h2 class="text-xl font-bold mb-4">Профиль</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label class="block text-xs font-bold mb-1">Email</label>
+                <input class="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-[var(--color-bg-soft)]" value={email ?? ''} disabled />
+              </div>
+              <div>
+                <label class="block text-xs font-bold mb-1">Рөлі</label>
+                <input class="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-[var(--color-bg-soft)]" value={roleLabel(profile.role)} disabled />
+              </div>
+            </div>
+            <form id="password-form" class="border-t border-[var(--color-border)] pt-5">
+              <h3 class="text-base font-bold mb-3">Құпия сөзді өзгерту</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <input id="new-password" class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="password" placeholder="Жаңа құпия сөз (кемінде 6 символ)" minlength="6" required />
+                <input id="confirm-password" class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="password" placeholder="Құпия сөзді қайталаңыз" minlength="6" required />
+              </div>
+              <p id="password-msg" class="hidden mb-3 px-4 py-2.5 rounded-lg text-sm font-medium"></p>
+              <button id="password-btn" class="px-5 py-2.5 bg-[var(--color-primary)] text-white border-none rounded-lg text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity" type="submit">Құпия сөзді жаңарту</button>
+            </form>
           </div>
 
           {['student','parent'].includes(profile.role) && schedules.length > 0 && (
@@ -88,6 +122,25 @@ const LESSON_TIMES = ['08:00 – 08:45','08:55 – 09:40','09:50 – 10:35','10:
             </div>
           )}
 
+          {profile.role === 'parent' && applications.length > 0 && (
+            <div class="mb-12">
+              <h2 class="text-2xl font-bold mb-6">Менің 1-сыныпқа өтінімдерім</h2>
+              <div class="flex flex-col gap-3">
+                {applications.map(a => (
+                  <div class="bg-white border border-[var(--color-border)] rounded-2xl p-5 shadow-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-bold m-0 mb-1">{a.child_name} <span class="text-xs font-normal text-[var(--color-text-secondary)]">({a.grade} сынып)</span></p>
+                        <p class="text-xs text-[var(--color-text-secondary)] m-0">{new Date(a.created_at).toLocaleDateString('kk-KZ')}</p>
+                      </div>
+                      <span class:list={['px-2.5 py-1 rounded-full text-xs font-bold', a.status === 'accepted' ? 'bg-green-100 text-green-700' : a.status === 'rejected' ? 'bg-red-100 text-red-700' : a.status === 'reviewed' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700']}>{STATUS_LABELS[a.status] ?? a.status}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <h2 class="text-2xl font-bold mb-6">Хабарландырулар</h2>
             {announcements.length > 0 ? (
@@ -110,3 +163,31 @@ const LESSON_TIMES = ['08:00 – 08:45','08:55 – 09:40','09:50 – 10:35','10:
     </div>
   </section>
 </Base>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+  const form = document.getElementById('password-form') as HTMLFormElement | null;
+  const msg = document.getElementById('password-msg') as HTMLElement | null;
+  const btn = document.getElementById('password-btn') as HTMLButtonElement | null;
+
+  if (form) form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const newP = (document.getElementById('new-password') as HTMLInputElement).value;
+    const confirmP = (document.getElementById('confirm-password') as HTMLInputElement).value;
+    if (!msg) return;
+    msg.hidden = false;
+    if (newP.length < 6) { msg.textContent = 'Құпия сөз кемінде 6 символ болуы керек'; msg.className = 'hidden mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-50 text-red-800'; return; }
+    if (newP !== confirmP) { msg.textContent = 'Құпия сөздер сәйкес келмейді'; msg.className = 'hidden mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-50 text-red-800'; return; }
+    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+    const { error } = await supabase.auth.updateUser({ password: newP });
+    if (error) {
+      msg.textContent = 'Қате: ' + error.message;
+      msg.className = 'hidden mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-50 text-red-800';
+    } else {
+      msg.textContent = 'Құпия сөз сәтті жаңартылды';
+      msg.className = 'hidden mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-green-50 text-green-800';
+      form.reset();
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Құпия сөзді жаңарту'; }
+  });
+</script>

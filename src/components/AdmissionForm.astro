@@ -1,0 +1,114 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = ui[lang].admission;
+const msgs = {
+  required: t.required,
+  phoneInvalid: t.phoneInvalid,
+  error: 'Ошибка при отправке. Попробуйте позже.',
+  success: t.success,
+  submit: t.submit,
+};
+---
+
+<section class="py-20">
+  <div class="container max-w-[860px]">
+    <div class="text-center mb-12">
+      <span class="eyebrow mb-4">{t.title}</span>
+      <h1 class="text-[clamp(28px,4vw,38px)] font-extrabold m-0 mb-3">{t.title}</h1>
+      <p class="text-[var(--color-text-secondary)] m-0">{t.subtitle}</p>
+    </div>
+
+    <form id="admission-form" class="bg-white border border-[var(--color-border)] rounded-2xl p-8 shadow-sm mb-6" novalidate data-msgs={JSON.stringify(msgs).replace(/"/g, '&quot;')}>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+        <div class="md:col-span-2">
+          <label for="child-name" class="block text-sm font-bold mb-1.5">{t.childName} <span class="text-red-500">*</span></label>
+          <input id="child-name" name="child_name" type="text" required autocomplete="off" class="w-full px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit]" />
+        </div>
+        <div>
+          <label for="birth-date" class="block text-sm font-bold mb-1.5">{t.birthDate} <span class="text-red-500">*</span></label>
+          <input id="birth-date" name="birth_date" type="date" required class="w-full px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit]" />
+        </div>
+        <div>
+          <label for="grade" class="block text-sm font-bold mb-1.5">Класс / Сынып</label>
+          <select id="grade" name="grade" class="w-full px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit] bg-white">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+        </div>
+        <div>
+          <label for="parent-name" class="block text-sm font-bold mb-1.5">{t.parentName} <span class="text-red-500">*</span></label>
+          <input id="parent-name" name="parent_name" type="text" required autocomplete="off" class="w-full px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit]" />
+        </div>
+        <div>
+          <label for="phone" class="block text-sm font-bold mb-1.5">{t.phone} <span class="text-red-500">*</span></label>
+          <input id="phone" name="phone" type="tel" required autocomplete="off" placeholder="+7 (___) ___-__-__" class="w-full px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit]" />
+        </div>
+        <div>
+          <label for="email" class="block text-sm font-bold mb-1.5">{t.email}</label>
+          <input id="email" name="email" type="email" autocomplete="off" class="w-full px-4 py-3 border border-[var(--color-border)] rounded-lg text-base font-[inherit]" />
+        </div>
+      </div>
+
+      <p id="form-error" class="hidden mb-4 px-4 py-3 rounded-lg bg-red-50 text-red-800 text-sm font-medium"></p>
+      <p id="form-success" class="hidden mb-4 px-4 py-3 rounded-lg bg-green-50 text-green-800 text-sm font-medium"></p>
+
+      <button id="submit-btn" class="w-full px-6 py-3.5 bg-[var(--color-primary)] text-white border-none rounded-xl font-bold text-base cursor-pointer hover:bg-[var(--color-primary-hover)] transition-colors" type="submit">{t.submit}</button>
+
+      <p class="mt-5 text-[13px] leading-relaxed text-[var(--color-text-secondary)] bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-xl px-4 py-3 m-0">{t.note}</p>
+    </form>
+  </div>
+</section>
+
+<script lang="ts">
+  const form = document.getElementById('admission-form');
+  const errorEl = document.getElementById('form-error');
+  const successEl = document.getElementById('form-success');
+  const submitBtn = document.getElementById('submit-btn');
+  const msgs = JSON.parse(form?.dataset.msgs ?? '{}');
+
+  function show(el, text, ok) {
+    if (!el) return;
+    el.textContent = text;
+    el.hidden = false;
+    el.className = 'mb-4 px-4 py-3 rounded-lg text-sm font-medium ' + (ok ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800');
+  }
+
+  if (form) form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const childName = String(fd.get('child_name') ?? '').trim();
+    const birthDate = String(fd.get('birth_date') ?? '').trim();
+    const parentName = String(fd.get('parent_name') ?? '').trim();
+    const phone = String(fd.get('phone') ?? '').trim();
+    const email = String(fd.get('email') ?? '').trim();
+    const grade = String(fd.get('grade') ?? '1') || '1';
+
+    if (!childName || !birthDate || !parentName || !phone) {
+      show(errorEl, msgs.required, false); return;
+    }
+    if (!/^\+?[0-9\s()-]{9,18}$/.test(phone)) {
+      show(errorEl, msgs.phoneInvalid, false); return;
+    }
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '...'; }
+    try {
+      const res = await fetch('/api/admission', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ child_name: childName, birth_date: birthDate, parent_name: parentName, phone, email, grade, lang })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || msgs.error);
+      form.reset();
+      show(successEl, msgs.success, true);
+    } catch (err) {
+      show(errorEl, err instanceof Error ? err.message : msgs.error, false);
+    } finally {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = msgs.submit; }
+    }
+  });
+</script>

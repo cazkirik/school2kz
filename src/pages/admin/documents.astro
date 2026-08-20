@@ -1,0 +1,66 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { supabase } from '../../lib/supabase';
+import { MODERATOR_ROLES } from '../../lib/roles';
+
+const { profile } = Astro.locals;
+if (!profile || !MODERATOR_ROLES.includes(profile.role)) {
+  return Astro.redirect('/admin');
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  statute: 'Устав и лицензия', license: 'Лицензия', orders: 'Приказы',
+  reports: 'Отчёты', local: 'Локальные акты', other: 'Прочие',
+};
+
+const { data: docs } = await supabase
+  .from('documents')
+  .select('*')
+  .order('date', { ascending: false });
+---
+
+<Admin>
+  <header class="mb-8">
+    <h1 class="text-3xl font-extrabold mb-1">Документы</h1>
+    <p class="text-[var(--color-text-secondary)]">Устав, лицензии, приказы и отчёты школы (PDF, Word)</p>
+  </header>
+
+  <form action="/api/admin/documents/upload" method="POST" enctype="multipart/form-data" class="bg-white border border-[var(--color-border)] rounded-2xl p-6 mb-8 shadow-sm">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="title" placeholder="Название документа (например: Устав школы)" required />
+      <select class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm font-[inherit] bg-white" name="category">
+        {Object.entries(CATEGORY_LABELS).map(([key, label]) => <option value={key}>{label}</option>)}
+      </select>
+      <select class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm font-[inherit] bg-white" name="lang">
+        <option value="ru">Русский</option>
+        <option value="kk">Казахский</option>
+      </select>
+      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-white" type="file" name="file" accept=".pdf,.doc,.docx" required />
+    </div>
+    <button class="px-5 py-2.5 bg-[var(--color-primary)] text-white border-none rounded-lg text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity" type="submit">Загрузить документ</button>
+  </form>
+
+  <div class="flex flex-col gap-3">
+    {(!docs || docs.length === 0) ? (
+      <p class="text-center text-[var(--color-text-secondary)] py-12">Документы пока не добавлены</p>
+    ) : docs.map(doc => (
+      <div class="flex items-center justify-between gap-4 bg-white border border-[var(--color-border)] rounded-xl px-5 py-4 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2 py-0.5 bg-[var(--color-bg-soft)] text-[var(--color-text-secondary)] rounded-full text-[11px] font-bold">{CATEGORY_LABELS[doc.category] ?? doc.category}</span>
+            <span class="px-2 py-0.5 bg-[var(--color-primary-soft)] text-[var(--color-primary)] rounded-full text-[11px] font-bold">{doc.lang === 'ru' ? 'RU' : 'KK'}</span>
+          </div>
+          <p class="text-sm font-bold m-0 mt-1.5 break-words">{doc.title}</p>
+          <time class="text-xs text-[var(--color-text-muted)]">{new Date(doc.date).toLocaleDateString('ru-RU')}</time>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <a href={doc.file_url} target="_blank" rel="noopener" class="px-3 py-1.5 bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-lg text-xs font-bold no-underline hover:bg-[var(--color-primary-soft)] transition-colors">Открыть</a>
+          <form action="/api/admin/documents/delete" method="POST" onsubmit="return confirm('Удалить документ?')">
+            <input type="hidden" name="id" value={doc.id} />
+            <button class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold cursor-pointer hover:bg-red-100 transition-colors" type="submit">Удалить</button>
+          </form>
+        </div>
+      </div>
+    ))}
+  </div>
+</Admin>

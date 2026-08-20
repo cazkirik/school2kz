@@ -112,6 +112,37 @@ const gallery = galleryRows && galleryRows.length > 0 ? galleryRows : fallbackGa
 
 <section class="py-24">
   <div class="container">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <a href={`${prefix}/admission/`} class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-primary)] to-[#1d4ed8] p-8 flex flex-col justify-between min-h-[220px] no-underline text-white shadow-sm transition-all hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
+        <span class="text-white/70 text-xs font-bold uppercase tracking-wider">{lang === 'ru' ? 'Поступление' : 'Қабылдау'}</span>
+        <div>
+          <h3 class="text-2xl font-extrabold m-0 mb-2 text-white">{t.nav.admission}</h3>
+          <p class="text-white/85 text-sm m-0 mb-4">{lang === 'ru' ? 'Подайте заявление онлайн — это займёт пару минут' : 'Өтінімді онлайн тапсырыңыз — бірнеше минут алады'}</p>
+          <span class="inline-flex items-center gap-1.5 bg-white text-[var(--color-primary)] px-4 py-2 rounded-xl text-sm font-bold transition-transform group-hover:translate-x-1">{lang === 'ru' ? 'Подать заявку' : 'Өтінім беру'}<span>&rarr;</span></span>
+        </div>
+      </a>
+      <a href={`${prefix}/documents/`} class="group relative overflow-hidden rounded-3xl bg-white border border-[var(--color-border)] p-8 flex flex-col justify-between min-h-[220px] no-underline text-[var(--color-text-primary)] shadow-sm transition-all hover:shadow-[var(--shadow-md)] hover:-translate-y-1">
+        <span class="text-[var(--color-primary)] text-xs font-bold uppercase tracking-wider">{lang === 'ru' ? 'Документы' : 'Құжаттар'}</span>
+        <div>
+          <h3 class="text-2xl font-extrabold m-0 mb-2">{t.nav.documents}</h3>
+          <p class="text-[var(--color-text-secondary)] text-sm m-0 mb-4">{lang === 'ru' ? 'Устав, приказы, отчёты и локальные акты школы' : 'Мектеп жарғысы, бұйрықтар, есептер мен жергілікті актілер'}</p>
+          <span class="inline-flex items-center gap-1.5 text-[var(--color-primary)] font-bold text-sm transition-transform group-hover:translate-x-1">{lang === 'ru' ? 'Смотреть' : 'Көру'}<span>&rarr;</span></span>
+        </div>
+      </a>
+      <a href={`${prefix}/clubs/`} class="group relative overflow-hidden rounded-3xl bg-white border border-[var(--color-border)] p-8 flex flex-col justify-between min-h-[220px] no-underline text-[var(--color-text-primary)] shadow-sm transition-all hover:shadow-[var(--shadow-md)] hover:-translate-y-1">
+        <span class="text-[var(--color-primary)] text-xs font-bold uppercase tracking-wider">{lang === 'ru' ? 'Развитие' : 'Даму'}</span>
+        <div>
+          <h3 class="text-2xl font-extrabold m-0 mb-2">{t.nav.clubs}</h3>
+          <p class="text-[var(--color-text-secondary)] text-sm m-0 mb-4">{lang === 'ru' ? 'Спорт, творчество, наука — 30+ кружков и секций' : 'Спорт, шығармашылық, ғылым — 30+ үйірме мен секция'}</p>
+          <span class="inline-flex items-center gap-1.5 text-[var(--color-primary)] font-bold text-sm transition-transform group-hover:translate-x-1">{lang === 'ru' ? 'Выбрать кружок' : 'Үйірме таңдау'}<span>&rarr;</span></span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="py-24">
+  <div class="container">
     <div class="flex items-end justify-between gap-x-6 gap-y-2 flex-wrap mb-10 reveal">
       <div>
         <span class="eyebrow mb-4">{t.home.newsTitle}</span>

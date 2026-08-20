@@ -17,10 +17,15 @@ const items = (await getCollection('publications'))
       <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-[var(--color-success)] bg-[var(--color-success-soft)] mb-4">{t.publications.title}</span>
       <h1 class="text-[clamp(28px,4vw,38px)] font-extrabold">{t.publications.title}</h1>
     </div>
+    <div class="max-w-md mx-auto mb-12 relative reveal">
+      <svg class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="pubs-search" type="search" placeholder={t.search.placeholder} class="w-full pl-11 pr-4 py-3 border border-[var(--color-border)] rounded-xl text-base font-[inherit] bg-white shadow-sm focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
+    </div>
+
     {items.length > 0 ? (
-      <div class="grid grid-cols-3 gap-7 max-lg:grid-cols-1">
+      <div id="pubs-grid" class="grid grid-cols-3 gap-7 max-lg:grid-cols-1">
         {items.map((p, i) => (
-          <div class="reveal" style={`transition-delay:${i * 70}ms`}>
+          <div class="reveal pubs-card" data-title={p.data.title.toLowerCase()} style={`transition-delay:${i * 70}ms`}>
             <PostCard item={p} collection="publications" lang={lang} readMore={t.publications.readMore} />
           </div>
         ))}
@@ -28,5 +33,21 @@ const items = (await getCollection('publications'))
     ) : (
       <p class="text-center text-[var(--color-text-secondary)]">{t.publications.empty}</p>
     )}
+    <p id="pubs-empty" class="hidden text-center text-[var(--color-text-secondary)]">{t.search.noResults}</p>
   </div>
 </section>
+
+<script>
+  const searchInput = document.getElementById('pubs-search') as HTMLInputElement | null;
+  const emptyEl = document.getElementById('pubs-empty') as HTMLElement | null;
+  searchInput?.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+    document.querySelectorAll<HTMLElement>('.pubs-card').forEach(card => {
+      const hit = !q || (card.dataset.title ?? '').includes(q);
+      card.style.display = hit ? '' : 'none';
+      if (hit) visible++;
+    });
+    if (emptyEl) emptyEl.hidden = visible !== 0;
+  });
+</script>

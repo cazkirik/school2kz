@@ -1,0 +1,111 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { supabase } from '../../lib/supabase';
+import { z } from 'zod';
+import { MODERATOR_ROLES } from '../../lib/roles';
+
+const { profile } = Astro.locals;
+if (!profile || !MODERATOR_ROLES.includes(profile.role)) {
+  return Astro.redirect('/admin');
+}
+
+const clubSchema = z.object({
+  title: z.string().min(1, 'Название обязательно'),
+  description: z.string().optional().default(''),
+  schedule: z.string().optional().default(''),
+  leader: z.string().optional().default(''),
+  room: z.string().optional().default(''),
+  lang: z.enum(['ru', 'kk']).default('ru'),
+});
+let success = '', error = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const action = formData.get('action') || 'create';
+    const parsed = clubSchema.parse({
+      title: formData.get('title'),
+      description: formData.get('description'),
+      schedule: formData.get('schedule'),
+      leader: formData.get('leader'),
+      room: formData.get('room'),
+      lang: formData.get('lang') || 'ru',
+    });
+    if (action === 'update') {
+      const id = formData.get('id');
+      if (!id) throw new Error('Не указан id');
+      const { error: dbErr } = await supabase.from('clubs').update(parsed).eq('id', id);
+      if (dbErr) throw dbErr;
+      success = 'Кружок обновлён!';
+    } else {
+      const { error: dbErr } = await supabase.from('clubs').insert(parsed);
+      if (dbErr) throw dbErr;
+      success = 'Кружок добавлен!';
+    }
+  } catch (e: any) { error = e.message || 'Ошибка сохранения'; }
+}
+
+const editId = Astro.url.searchParams.get('edit');
+let editing = null;
+if (editId) {
+  const { data: item } = await supabase.from('clubs').select('*').eq('id', editId).single();
+  editing = item;
+}
+
+const { data: clubs } = await supabase.from('clubs').select('*').order('sort_order', { ascending: true });
+---
+
+<Admin>
+  <header class="mb-8">
+    <h1 class="text-3xl font-extrabold mb-1">Кружки и секции</h1>
+    <p class="text-[var(--color-text-secondary)]">{editing ? `Редактирование: ${editing.title}` : 'Внеурочная деятельность школы'}</p>
+  </header>
+
+  {success && <div class="bg-green-50 text-green-800 border border-green-200 rounded-lg px-4 py-3 mb-6 text-sm font-medium">{success}</div>}
+  {error && <div class="bg-red-50 text-red-800 border border-red-200 rounded-lg px-4 py-3 mb-6 text-sm font-medium">{error}</div>}
+
+  {editing && <div class="mb-4"><a href="/admin/clubs" class="text-sm font-bold text-[var(--color-primary)] no-underline">&larr; К списку кружков</a></div>}
+
+  <form method="POST" class="bg-white border border-[var(--color-border)] rounded-2xl p-6 mb-8 shadow-sm">
+    {editing && <input type="hidden" name="id" value={editing.id} />}
+    <input type="hidden" name="action" value={editing ? 'update' : 'create'} />
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div class="md:col-span-2">
+        <input class="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="title" placeholder="Название (например: Шахматы)" required value={editing?.title ?? ''} />
+      </div>
+      <div class="md:col-span-2">
+        <textarea class="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm font-[inherit] min-h-[90px]" name="description" placeholder="Описание кружка">{editing?.description ?? ''}</textarea>
+      </div>
+      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="leader" placeholder="Руководитель" value={editing?.leader ?? ''} />
+      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="schedule" placeholder="Расписание (например: Пн/Ср 15:00–16:30)" value={editing?.schedule ?? ''} />
+      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="room" placeholder="Кабинет" value={editing?.room ?? ''} />
+      <select class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm font-[inherit] bg-white" name="lang">
+        <option value="ru" selected={!editing || editing.lang === 'ru'}>Русский</option>
+        <option value="kk" selected={editing?.lang === 'kk'}>Казахский</option>
+      </select>
+    </div>
+    <button class="px-5 py-2.5 bg-[var(--color-primary)] text-white border-none rounded-lg text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity" type="submit">{editing ? 'Сохранить' : 'Добавить кружок'}</button>
+  </form>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {(!clubs || clubs.length === 0) ? (
+      <p class="text-center text-[var(--color-text-secondary)] py-12 col-span-full">Кружков пока нет</p>
+    ) : clubs.map(club => (
+      <div class="bg-white border border-[var(--color-border)] rounded-2xl p-5 shadow-sm">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div>
+            <h3 class="text-base font-bold m-0">{club.title}</h3>
+            <span class="text-[11px] font-bold px-2 py-0.5 bg-[var(--color-primary-soft)] text-[var(--color-primary)] rounded-full inline-block mt-1">{club.lang === 'ru' ? 'RU' : 'KK'}</span>
+          </div>
+          <a href={`/admin/clubs?edit=${club.id}`} class="px-3 py-1.5 bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-lg text-xs font-bold no-underline hover:bg-[var(--color-primary-soft)] transition-colors shrink-0">Изменить</a>
+        </div>
+        <p class="text-sm text-[var(--color-text-secondary)] m-0 mb-3 whitespace-pre-line line-clamp-3">{club.description || '—'}</p>
+        <div class="text-xs text-[var(--color-text-secondary)] flex flex-col gap-1">
+          {club.leader && <span>👤 {club.leader}</span>}
+          {club.schedule && <span>🕒 {club.schedule}</span>}
+          {club.room && <span>📍 {club.room}</span>}
+        </div>
+      </div>
+    ))}
+  </div>
+</Admin>

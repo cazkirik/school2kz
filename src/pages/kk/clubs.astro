@@ -1,0 +1,10 @@
+---
+import Base from '../../layouts/Base.astro';
+import ClubsView from '../../components/ClubsView.astro';
+import { siteConfig } from '../../siteConfig';
+import { ui } from '../../i18n/ui';
+const t = ui.kk;
+---
+<Base lang="kk" title={`${t.clubs.title} — ${siteConfig.name.kk}`}>
+  <ClubsView lang="kk" />
+</Base>

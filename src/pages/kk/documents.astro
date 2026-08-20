@@ -1,0 +1,10 @@
+---
+import Base from '../../layouts/Base.astro';
+import DocumentsView from '../../components/DocumentsView.astro';
+import { siteConfig } from '../../siteConfig';
+import { ui } from '../../i18n/ui';
+const t = ui.kk;
+---
+<Base lang="kk" title={`${t.documents.title} — ${siteConfig.name.kk}`}>
+  <DocumentsView lang="kk" />
+</Base>

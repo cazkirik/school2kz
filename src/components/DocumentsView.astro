@@ -1,0 +1,66 @@
+---
+import { ui, type Locale } from '../i18n/ui';
+import { supabase } from '../lib/supabase';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = ui[lang];
+const { data: docs } = await supabase
+  .from('documents')
+  .select('*')
+  .eq('lang', lang)
+  .order('sort_order', { ascending: true })
+  .order('date', { ascending: false });
+
+const categories: { key: string; label: string }[] = [
+  { key: 'statute', label: t.documents.categories.statute },
+  { key: 'license', label: t.documents.categories.license },
+  { key: 'orders', label: t.documents.categories.orders },
+  { key: 'reports', label: t.documents.categories.reports },
+  { key: 'local', label: t.documents.categories.local },
+  { key: 'other', label: t.documents.categories.other },
+];
+const grouped = categories.map(c => ({ ...c, items: (docs ?? []).filter(d => d.category === c.key) }));
+const nonEmpty = grouped.filter(g => g.items.length > 0);
+---
+
+<section class="py-20">
+  <div class="container max-w-[1000px]">
+    <div class="mb-12">
+      <span class="eyebrow mb-4">{t.documents.title}</span>
+      <h1 class="text-[clamp(28px,4vw,38px)] font-extrabold m-0 mb-3">{t.documents.title}</h1>
+      <p class="text-[var(--color-text-secondary)] m-0">{t.documents.subtitle}</p>
+    </div>
+
+    {nonEmpty.length === 0 ? (
+      <p class="text-[var(--color-text-secondary)]">{t.documents.empty}</p>
+    ) : (
+      <div class="flex flex-col gap-10">
+        {nonEmpty.map(group => (
+          <section>
+            <h2 class="text-2xl font-extrabold m-0 mb-5 pb-3 border-b border-[var(--color-border)]">{group.label}</h2>
+            <ul class="list-none m-0 p-0 flex flex-col gap-3">
+              {group.items.map(doc => (
+                <li class="flex items-center justify-between gap-4 bg-white border border-[var(--color-border)] rounded-2xl p-5 shadow-sm transition-all hover:shadow-[var(--shadow-md)] hover:border-[var(--color-primary-soft)]">
+                  <div class="flex items-start gap-4 min-w-0">
+                    <div class="w-11 h-11 shrink-0 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                    </div>
+                    <div class="min-w-0">
+                      <h3 class="text-[15px] font-bold m-0 mb-1 break-words">{doc.title}</h3>
+                      <time class="text-xs text-[var(--color-text-muted)]">{new Date(doc.date).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'kk-KZ')}</time>
+                    </div>
+                  </div>
+                  <a href={doc.file_url} target="_blank" rel="noopener" class="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl text-sm font-bold no-underline hover:bg-[var(--color-primary-hover)] transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                    {t.documents.download}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    )}
+  </div>
+</section>

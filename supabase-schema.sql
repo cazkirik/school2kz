@@ -289,3 +289,132 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION admin_set_banned(uuid, boolean) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION admin_set_banned(uuid, boolean) TO authenticated;
+-- Applications: заявки в 1 класс
+CREATE TABLE IF NOT EXISTS public.applications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  child_name TEXT NOT NULL,
+  birth_date DATE NOT NULL,
+  parent_name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  email TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','reviewed','accepted','rejected')),
+  lang TEXT NOT NULL DEFAULT 'ru',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can submit application" ON applications FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Staff can view applications" ON applications FOR SELECT USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('moderator','super_admin'))
+);
+CREATE POLICY "Staff can manage applications" ON applications FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('moderator','super_admin'))
+);
+
+-- Documents
+CREATE TABLE IF NOT EXISTS public.documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'other' CHECK (category IN ('statute','license','orders','reports','local','other')),
+  lang TEXT NOT NULL DEFAULT 'ru',
+  file_url TEXT NOT NULL,
+  date TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view documents" ON documents FOR SELECT USING (true);
+CREATE POLICY "Staff can manage documents" ON documents FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('moderator','super_admin'))
+);
+
+-- Clubs
+CREATE TABLE IF NOT EXISTS public.clubs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  leader TEXT NOT NULL DEFAULT '',
+  schedule TEXT NOT NULL DEFAULT '',
+  room TEXT NOT NULL DEFAULT '',
+  image_url TEXT,
+  lang TEXT NOT NULL DEFAULT 'ru',
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+ALTER TABLE clubs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view clubs" ON clubs FOR SELECT USING (true);
+CREATE POLICY "Staff can manage clubs" ON clubs FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('moderator','super_admin'))
+);
+
+-- Bell schedule
+CREATE TABLE IF NOT EXISTS public.bell_schedule (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  shift TEXT NOT NULL CHECK (shift IN ('first','second')),
+  lesson_number INTEGER NOT NULL,
+  start_time TEXT NOT NULL,
+  end_time TEXT NOT NULL,
+  lang TEXT NOT NULL DEFAULT 'ru',
+  UNIQUE (shift, lesson_number, lang)
+);
+
+ALTER TABLE bell_schedule ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view bells" ON bell_schedule FOR SELECT USING (true);
+CREATE POLICY "Staff can manage bells" ON bell_schedule FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('moderator','super_admin'))
+);
+
+INSERT INTO bell_schedule (shift, lesson_number, start_time, end_time, lang) VALUES
+  ('first',1,'08:00','08:45','ru'),('first',2,'08:55','09:40','ru'),('first',3,'09:50','10:35','ru'),
+  ('first',4,'10:55','11:40','ru'),('first',5,'11:50','12:35','ru'),('first',6,'12:45','13:30','ru'),
+  ('second',1,'14:00','14:45','ru'),('second',2,'14:55','15:40','ru'),('second',3,'15:50','16:35','ru'),
+  ('second',4,'16:45','17:30','ru'),('second',5,'17:40','18:25','ru'),
+  ('first',1,'08:00','08:45','kk'),('first',2,'08:55','09:40','kk'),('first',3,'09:50','10:35','kk'),
+  ('first',4,'10:55','11:40','kk'),('first',5,'11:50','12:35','kk'),('first',6,'12:45','13:30','kk'),
+  ('second',1,'14:00','14:45','kk'),('second',2,'14:55','15:40','kk'),('second',3,'15:50','16:35','kk'),
+  ('second',4,'16:45','17:30','kk'),('second',5,'17:40','18:25','kk')
+ON CONFLICT (shift, lesson_number, lang) DO NOTHING;
+
+-- Reception hours
+CREATE TABLE IF NOT EXISTS public.reception_hours (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  person TEXT NOT NULL,
+  hours TEXT NOT NULL,
+  note TEXT NOT NULL DEFAULT '',
+  lang TEXT NOT NULL DEFAULT 'ru',
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+ALTER TABLE reception_hours ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view reception hours" ON reception_hours FOR SELECT USING (true);
+CREATE POLICY "Staff can manage reception hours" ON reception_hours FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('moderator','super_admin'))
+);
+
+INSERT INTO reception_hours (person, hours, note, lang, sort_order) VALUES
+  ('Директор', 'Ср 14:00 – 17:00', 'По предварительной записи', 'ru', 1),
+  ('Заместители директора', 'Вт–Чт 14:00 – 16:00', '', 'ru', 2),
+  ('Психолог', 'Пн–Пт 13:00 – 15:00', 'Для родителей', 'ru', 3),
+  ('Директор', 'Ср 14:00 – 17:00', 'Алдын ала жазылу арқылы', 'kk', 1),
+  ('Директор орынбасарлары', 'Сс–Бс 14:00 – 16:00', '', 'kk', 2),
+  ('Психолог', 'Дс–Жм 13:00 – 15:00', 'Ата-аналарға', 'kk', 3)
+ON CONFLICT DO NOTHING;
+
+-- Bucket for documents
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('school-docs', 'school-docs', TRUE, 15728640, ARRAY['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+ON CONFLICT (id) DO UPDATE SET public = TRUE;
+
+CREATE POLICY "Anyone can view school docs" ON storage.objects FOR SELECT USING (bucket_id = 'school-docs');
+CREATE POLICY "Staff can upload school docs" ON storage.objects FOR INSERT WITH CHECK (
+  bucket_id = 'school-docs'
+  AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('moderator','super_admin'))
+);
+CREATE POLICY "Staff can delete school docs" ON storage.objects FOR DELETE USING (
+  bucket_id = 'school-docs'
+  AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('moderator','super_admin'))
+);

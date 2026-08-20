@@ -19,8 +19,16 @@ const { data: news } = await supabase
 if (!news) {
   return Astro.redirect('/kk/news/');
 }
+
+const { data: similar } = await supabase
+  .from('news')
+  .select('id, slug, title, description, date, image_url')
+  .eq('lang', lang)
+  .neq('slug', slug)
+  .order('date', { ascending: false })
+  .limit(2);
 ---
 
 <Base lang={lang} title={`${news.title} — ${siteConfig.name[lang]}`} description={news.description}>
-  <NewsPostView lang={lang} news={news} />
+  <NewsPostView lang={lang} news={news} similar={similar ?? []} />
 </Base>

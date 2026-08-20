@@ -18,8 +18,12 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const lang = 'kk';
+const similar = (await getCollection('publications'))
+  .filter((e) => e.data.lang === 'kk' && e.id.split('/')[0] !== entry.id.split('/')[0])
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 2);
 ---
 
 <Base lang={lang} title={`${entry.data.title} — ${siteConfig.name[lang]}`} description={entry.data.description}>
-  <PublicationsPostView lang={lang} entry={entry} />
+  <PublicationsPostView lang={lang} entry={entry} similar={similar} />
 </Base>
