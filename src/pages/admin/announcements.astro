@@ -2,6 +2,12 @@
 import Admin from '../../layouts/Admin.astro';
 import { supabase } from '../../lib/supabase';
 import { z } from 'zod';
+import { ADMIN_ROLES } from '../../lib/roles';
+
+const { profile } = Astro.locals;
+if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+  return Astro.redirect('/admin');
+}
 
 const annSchema = z.object({
   title: z.string().min(1, 'Заголовок обязателен'),
@@ -13,6 +19,7 @@ let success = '', error = '';
 if (Astro.request.method === 'POST') {
   try {
     const formData = await Astro.request.formData();
+    const action = formData.get('action') || 'create';
     const parsed = annSchema.parse({
       title: formData.get('title'),
       content: formData.get('content'),
@@ -20,14 +27,33 @@ if (Astro.request.method === 'POST') {
       lang: formData.get('lang') || 'ru',
     });
     const pinned = formData.get('pinned') === 'on';
-    const { error: dbErr } = await supabase.from('announcements').insert({
-      title: parsed.title, content: parsed.content, audience: parsed.audience,
-      lang: parsed.lang, pinned, date: new Date().toISOString(),
-    });
-    if (dbErr) throw dbErr;
-    success = 'Объявление опубликовано!';
+    if (action === 'update') {
+      const id = formData.get('id');
+      if (!id) throw new Error('Не указан id');
+      const { error: dbErr } = await supabase
+        .from('announcements')
+        .update({ title: parsed.title, content: parsed.content, audience: parsed.audience, lang: parsed.lang, pinned })
+        .eq('id', id);
+      if (dbErr) throw dbErr;
+      success = 'Объявление обновлено!';
+    } else {
+      const { error: dbErr } = await supabase.from('announcements').insert({
+        title: parsed.title, content: parsed.content, audience: parsed.audience,
+        lang: parsed.lang, pinned, date: new Date().toISOString(),
+      });
+      if (dbErr) throw dbErr;
+      success = 'Объявление опубликовано!';
+    }
   } catch (e: any) { error = e.message || 'Ошибка публикации'; }
 }
+
+const editId = Astro.url.searchParams.get('edit');
+let editing = null;
+if (editId) {
+  const { data: item } = await supabase.from('announcements').select('*').eq('id', editId).single();
+  editing = item;
+}
+
 const { data: annList } = await supabase.from('announcements').select('*').order('date', { ascending: false });
 const AUDIENCE_LABELS: Record<string, string> = {
   all: 'Для всех', students: 'Ученики', teachers: 'Учителя', parents: 'Родители',
@@ -36,34 +62,38 @@ const AUDIENCE_LABELS: Record<string, string> = {
 <Admin>
   <header class="mb-8">
     <h1 class="text-3xl font-extrabold mb-1">Объявления</h1>
-    <p class="text-[var(--color-text-secondary)]">Публикация объявлений для учеников, учителей и родителей</p>
+    <p class="text-[var(--color-text-secondary)]">{editing ? `Редактирование: ${editing.title}` : 'Публикация объявлений для учеников, учителей и родителей'}</p>
   </header>
 
   {success && <div class="bg-green-50 text-green-800 border border-green-200 rounded-lg px-4 py-3 mb-6 text-sm font-medium">{success}</div>}
   {error && <div class="bg-red-50 text-red-800 border border-red-200 rounded-lg px-4 py-3 mb-6 text-sm font-medium">{error}</div>}
 
+  {editing && <div class="mb-4"><a href="/admin/announcements" class="text-sm font-bold text-[var(--color-primary)] no-underline">&larr; К списку объявлений</a></div>}
+
   <form method="POST" class="bg-white border border-[var(--color-border)] rounded-2xl p-6 mb-8 shadow-sm">
+    {editing && <input type="hidden" name="id" value={editing.id} />}
+    <input type="hidden" name="action" value={editing ? 'update' : 'create'} />
     <div class="grid grid-cols-2 gap-4 mb-4">
-      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="title" placeholder="Заголовок" required />
+      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="title" placeholder="Заголовок" required value={editing?.title ?? ''} />
       <div class="flex gap-4">
         <select class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm font-[inherit]" name="audience">
-          <option value="all">Для всех</option>
-          <option value="students">Ученики</option>
-          <option value="teachers">Учителя</option>
-          <option value="parents">Родители</option>
+          <option value="all" selected={!editing || editing.audience === 'all'}>Для всех</option>
+          <option value="students" selected={editing?.audience === 'students'}>Ученики</option>
+          <option value="teachers" selected={editing?.audience === 'teachers'}>Учителя</option>
+          <option value="parents" selected={editing?.audience === 'parents'}>Родители</option>
         </select>
         <select class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm font-[inherit]" name="lang">
-          <option value="ru">Русский</option>
-          <option value="kk">Казахский</option>
+          <option value="ru" selected={!editing || editing.lang === 'ru'}>Русский</option>
+          <option value="kk" selected={editing?.lang === 'kk'}>Казахский</option>
         </select>
       </div>
-      <textarea class="col-span-2 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm min-h-[120px]" name="content" placeholder="Текст объявления" required />
+      <textarea class="col-span-2 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm min-h-[120px]" name="content" placeholder="Текст объявления" required>{editing?.content ?? ''}</textarea>
     </div>
     <div class="flex items-center gap-6 mb-4">
       <label class="flex items-center gap-2 text-sm font-medium cursor-pointer">
-        <input type="checkbox" name="pinned" class="w-4 h-4" /> Закрепить сверху
+        <input type="checkbox" name="pinned" class="w-4 h-4" checked={editing?.pinned} /> Закрепить сверху
       </label>
-      <button class="px-5 py-2 bg-[var(--color-primary)] text-white border-none rounded-lg text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity" type="submit">Опубликовать</button>
+      <button class="px-5 py-2 bg-[var(--color-primary)] text-white border-none rounded-lg text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity" type="submit">{editing ? 'Сохранить' : 'Опубликовать'}</button>
     </div>
   </form>
 
@@ -85,7 +115,8 @@ const AUDIENCE_LABELS: Record<string, string> = {
             <td class="px-4 py-3 text-[var(--color-text-secondary)]">{AUDIENCE_LABELS[item.audience] ?? item.audience}</td>
             <td class="px-4 py-3 text-[var(--color-text-secondary)]">{item.lang === 'ru' ? 'Рус' : 'Қаз'}</td>
             <td class="px-4 py-3 text-[var(--color-text-muted)]">{new Date(item.date).toLocaleDateString('ru-RU')}</td>
-            <td class="px-4 py-3 text-right">
+            <td class="px-4 py-3 text-right whitespace-nowrap">
+              <a href={`/admin/announcements?edit=${item.id}`} class="text-xs font-bold text-[var(--color-primary)] no-underline mr-3 hover:underline">Редактировать</a>
               <form action="/api/admin/announcements/delete" method="POST" class="inline">
                 <input type="hidden" name="id" value={item.id} />
                 <button class="text-xs font-bold text-red-600 bg-transparent border-none cursor-pointer hover:underline" type="submit">Удалить</button>

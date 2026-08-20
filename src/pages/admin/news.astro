@@ -2,48 +2,115 @@
 import Admin from '../../layouts/Admin.astro';
 import { supabase } from '../../lib/supabase';
 import { z } from 'zod';
+import { ADMIN_ROLES } from '../../lib/roles';
 
-const newsSchema = z.object({ title: z.string().min(1), description: z.string().min(1), content: z.string().min(1), date: z.string(), lang: z.enum(['ru', 'kk']).default('ru') });
+const { profile } = Astro.locals;
+if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+  return Astro.redirect('/admin');
+}
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const newsSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().min(1),
+  content: z.string().min(1),
+  date: z.string(),
+  lang: z.enum(['ru', 'kk']).default('ru'),
+  image_url: z.string().optional(),
+});
 let success = '', error = '';
+const { data: storageFiles } = await supabase.storage.from('school-images').list();
+const imageOptions = (storageFiles ?? []).map(f => `${supabaseUrl}/storage/v1/object/public/school-images/${f.name}`);
+
 if (Astro.request.method === 'POST') {
   try {
     const formData = await Astro.request.formData();
+    const action = formData.get('action') || 'create';
     const parsed = newsSchema.parse({
-      title: formData.get('title'), description: formData.get('description'),
-      content: formData.get('content'), date: formData.get('date') || new Date().toISOString(),
+      title: formData.get('title'),
+      description: formData.get('description'),
+      content: formData.get('content'),
+      date: formData.get('date') || new Date().toISOString(),
       lang: formData.get('lang') || 'ru',
+      image_url: formData.get('image_url') || undefined,
     });
-    const slug = parsed.title.toLowerCase().replace(/[^a-zа-яё0-9]+/g, '-').replace(/-+$/, '');
-    const { error: dbErr } = await supabase.from('news').insert({ slug, title: parsed.title, description: parsed.description, content: parsed.content, date: parsed.date, lang: parsed.lang });
-    if (dbErr) throw dbErr;
-    success = 'Новость опубликована!';
-  } catch (e: any) { error = e.message || 'Ошибка публикации'; }
+    const payload = {
+      title: parsed.title,
+      description: parsed.description,
+      content: parsed.content,
+      date: parsed.date,
+      lang: parsed.lang,
+      image_url: parsed.image_url || null,
+    };
+    if (action === 'update') {
+      const id = formData.get('id');
+      if (!id) throw new Error('Не указан id');
+      const { error: dbErr } = await supabase.from('news').update(payload).eq('id', id);
+      if (dbErr) throw dbErr;
+      success = 'Новость обновлена!';
+    } else {
+      const slug = parsed.title.toLowerCase().replace(/[^a-zа-яё0-9]+/g, '-').replace(/-+$/, '');
+      const { error: dbErr } = await supabase.from('news').insert({ slug, ...payload });
+      if (dbErr) throw dbErr;
+      success = 'Новость опубликована!';
+    }
+  } catch (e: any) { error = e.message || 'Ошибка сохранения'; }
 }
+
+const editId = Astro.url.searchParams.get('edit');
+let editing = null;
+if (editId) {
+  const { data: item } = await supabase.from('news').select('*').eq('id', editId).single();
+  editing = item;
+}
+
 const { data: newsList } = await supabase.from('news').select('*').order('date', { ascending: false });
 ---
 <Admin>
   <header class="mb-8">
     <h1 class="text-3xl font-extrabold mb-1">Новости</h1>
-    <p class="text-[var(--color-text-secondary)]">Публикация новостей школы</p>
+    <p class="text-[var(--color-text-secondary)]">{editing ? `Редактирование: ${editing.title}` : 'Публикация новостей школы'}</p>
   </header>
 
   {success && <div class="bg-green-50 text-green-800 border border-green-200 rounded-lg px-4 py-3 mb-6 text-sm font-medium">{success}</div>}
   {error && <div class="bg-red-50 text-red-800 border border-red-200 rounded-lg px-4 py-3 mb-6 text-sm font-medium">{error}</div>}
 
+  {editing && <div class="mb-4"><a href="/admin/news" class="text-sm font-bold text-[var(--color-primary)] no-underline">&larr; К списку новостей</a></div>}
+
   <form method="POST" class="bg-white border border-[var(--color-border)] rounded-2xl p-6 mb-8 shadow-sm">
+    {editing && <input type="hidden" name="id" value={editing.id} />}
+    <input type="hidden" name="action" value={editing ? 'update' : 'create'} />
     <div class="grid grid-cols-2 gap-4 mb-4">
-      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="title" placeholder="Заголовок" required />
+      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="title" placeholder="Заголовок" required value={editing?.title ?? ''} />
       <div class="flex gap-4">
-        <input class="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="date" name="date" />
+        <input class="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="date" name="date" value={editing ? new Date(editing.date).toISOString().slice(0, 10) : ''} />
         <select class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm font-[inherit]" name="lang">
-          <option value="ru">Русский</option>
-          <option value="kk">Қазақша</option>
+          <option value="ru" selected={!editing || editing.lang === 'ru'}>Русский</option>
+          <option value="kk" selected={editing?.lang === 'kk'}>Қазақша</option>
         </select>
       </div>
-      <textarea class="col-span-2 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm min-h-[60px]" name="description" placeholder="Краткое описание" required />
-      <textarea class="col-span-2 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm min-h-[150px]" name="content" placeholder="Полный текст (Markdown)" required />
+      <textarea class="col-span-2 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm min-h-[60px]" name="description" placeholder="Краткое описание" required>{editing?.description ?? ''}</textarea>
+      <textarea class="col-span-2 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm min-h-[150px]" name="content" placeholder="Полный текст (Markdown)" required>{editing?.content ?? ''}</textarea>
+      <div class="col-span-2">
+        <label class="block text-xs font-bold text-[var(--color-text-secondary)] mb-1.5">Изображение (обложка)</label>
+        <input id="image-url-input" class="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm mb-2" type="url" name="image_url" placeholder="https://… или выберите из библиотеки" value={editing?.image_url ?? ''} />
+        <select id="image-picker" class="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm font-[inherit]">
+          <option value="">— Выбрать из загруженных —</option>
+          {imageOptions.map(u => (
+            <option value={u} selected={editing?.image_url === u}>{u.split('/').pop()}</option>
+          ))}
+        </select>
+        {editing?.image_url && (
+          <div class="mt-2">
+            <img src={editing.image_url} alt="" class="w-40 h-24 object-cover rounded-lg border border-[var(--color-border)]" />
+          </div>
+        )}
+      </div>
     </div>
-    <button class="px-5 py-2 bg-[var(--color-primary)] text-white border-none rounded-lg text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity" type="submit">Опубликовать</button>
+    <div class="flex items-center gap-4">
+      <button class="px-5 py-2 bg-[var(--color-primary)] text-white border-none rounded-lg text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity" type="submit">{editing ? 'Сохранить' : 'Опубликовать'}</button>
+      <a href="/admin/images" class="text-sm font-bold text-[var(--color-primary)] no-underline">Открыть медиабиблиотеку</a>
+    </div>
   </form>
 
   <div class="bg-white border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-sm">
@@ -51,6 +118,7 @@ const { data: newsList } = await supabase.from('news').select('*').order('date',
       <thead class="bg-[var(--color-bg-soft)]">
         <tr>
           <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Заголовок</th>
+          <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Обложка</th>
           <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Язык</th>
           <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Дата</th>
           <th class="px-4 py-3 text-right font-bold text-[var(--color-text-primary)]">Действия</th>
@@ -60,17 +128,31 @@ const { data: newsList } = await supabase.from('news').select('*').order('date',
         {newsList?.map(item => (
           <tr class="border-t border-[var(--color-border)]">
             <td class="px-4 py-3 font-medium">{item.title}</td>
+            <td class="px-4 py-3">
+              {item.image_url
+                ? <img src={item.image_url} alt="" class="w-24 h-14 object-cover rounded-lg border border-[var(--color-border)]" loading="lazy" />
+                : <span class="text-xs text-[var(--color-text-muted)]">нет</span>}
+            </td>
             <td class="px-4 py-3 text-[var(--color-text-secondary)]">{item.lang === 'ru' ? 'Рус' : 'Қаз'}</td>
             <td class="px-4 py-3 text-[var(--color-text-muted)]">{new Date(item.date).toLocaleDateString('ru-RU')}</td>
-            <td class="px-4 py-3 text-right">
+            <td class="px-4 py-3 text-right whitespace-nowrap">
+              <a href={`/admin/news?edit=${item.id}`} class="text-xs font-bold text-[var(--color-primary)] no-underline mr-3 hover:underline">Редактировать</a>
               <form action="/api/admin/news/delete" method="POST" class="inline">
                 <input type="hidden" name="id" value={item.id} />
                 <button class="text-xs font-bold text-red-600 bg-transparent border-none cursor-pointer hover:underline" type="submit">Удалить</button>
               </form>
             </td>
           </tr>
-        )) || <tr><td class="px-4 py-6 text-center text-[var(--color-text-secondary)]" colspan="4">Новостей пока нет</td></tr>}
+        )) || <tr><td class="px-4 py-6 text-center text-[var(--color-text-secondary)]" colspan="5">Новостей пока нет</td></tr>}
       </tbody>
     </table>
   </div>
 </Admin>
+
+<script>
+  const picker = document.getElementById('image-picker') as HTMLSelectElement | null;
+  const input = document.getElementById('image-url-input') as HTMLInputElement | null;
+  picker?.addEventListener('change', () => {
+    if (picker.value && input) input.value = picker.value;
+  });
+</script>

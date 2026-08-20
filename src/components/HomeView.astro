@@ -27,6 +27,19 @@ const { data: announcements } = await supabase
   .order('pinned', { ascending: false })
   .order('date', { ascending: false })
   .limit(3);
+const { data: galleryRows } = await supabase
+  .from('gallery')
+  .select('image_url, caption_ru, caption_kk')
+  .order('sort_order', { ascending: true });
+const fallbackGallery = [
+  { image_url: '/images/school-2.jpg', caption_ru: 'Наша школа', caption_kk: 'Біздің мектеп' },
+  { image_url: '/images/school-3.jpg', caption_ru: 'Школьные будни', caption_kk: 'Мектеп күндері' },
+  { image_url: '/images/school-4.jpg', caption_ru: 'Уроки и перемены', caption_kk: 'Сабақтар мен үзілістер' },
+  { image_url: '/images/school-5.jpg', caption_ru: 'Наш коллектив', caption_kk: 'Біздің ұжым' },
+  { image_url: '/images/school-6.jpg', caption_ru: 'Моменты жизни школы', caption_kk: 'Мектеп өмірінің сәттері' },
+  { image_url: '/images/school-7.jpg', caption_ru: 'Школьный двор', caption_kk: 'Мектеп ауласы' },
+];
+const gallery = galleryRows && galleryRows.length > 0 ? galleryRows : fallbackGallery;
 ---
 
 <section class="relative overflow-hidden bg-gradient-to-br from-[var(--color-navy)] via-[#243a5e] to-[#1b2c4a] text-white py-20">
@@ -220,30 +233,12 @@ const { data: announcements } = await supabase
       </div>
     </div>
     <div class="grid grid-cols-3 gap-5 max-md:grid-cols-1 reveal">
-      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
-        <img src="/images/school-2.jpg" alt={lang === 'ru' ? 'Наша школа' : 'Біздің мектеп'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Наша школа' : 'Біздің мектеп'}</span>
-      </a>
-      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
-        <img src="/images/school-3.jpg" alt={lang === 'ru' ? 'Школьные будни' : 'Мектеп күндері'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Школьные будни' : 'Мектеп күндері'}</span>
-      </a>
-      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
-        <img src="/images/school-4.jpg" alt={lang === 'ru' ? 'Уроки и перемены' : 'Сабақтар мен үзілістер'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Уроки и перемены' : 'Сабақтар мен үзілістер'}</span>
-      </a>
-      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
-        <img src="/images/school-5.jpg" alt={lang === 'ru' ? 'Наш коллектив' : 'Біздің ұжым'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Наш коллектив' : 'Біздің ұжым'}</span>
-      </a>
-      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
-        <img src="/images/school-6.jpg" alt={lang === 'ru' ? 'Моменты жизни школы' : 'Мектеп өмірінің сәттері'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Моменты жизни школы' : 'Мектеп өмірінің сәттері'}</span>
-      </a>
-      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
-        <img src="/images/school-7.jpg" alt={lang === 'ru' ? 'Школьный двор' : 'Мектеп ауласы'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Школьный двор' : 'Мектеп ауласы'}</span>
-      </a>
+      {gallery.slice(0, 6).map(item => (
+        <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
+          <img src={item.image_url} alt={lang === 'ru' ? item.caption_ru : item.caption_kk} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+          <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? item.caption_ru : item.caption_kk}</span>
+        </a>
+      ))}
     </div>
   </div>
 </section>

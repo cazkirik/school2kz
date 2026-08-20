@@ -1,6 +1,12 @@
 ---
 import Admin from '../../layouts/Admin.astro';
 import { supabase } from '../../lib/supabase';
+import { MODERATOR_ROLES } from '../../lib/roles';
+
+const { profile } = Astro.locals;
+if (!profile || !MODERATOR_ROLES.includes(profile.role)) {
+  return Astro.redirect('/admin');
+}
 
 const { data: feedbackList } = await supabase
   .from('feedback')

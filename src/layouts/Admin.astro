@@ -1,5 +1,6 @@
 ---
 import { siteConfig } from '../siteConfig';
+import { roleLabel } from '../lib/roles';
 import type { Locale } from '../i18n/ui';
 import '@fontsource-variable/plus-jakarta-sans';
 import '../styles/global.css';
@@ -8,6 +9,7 @@ interface Props { lang?: Locale }
 const { lang = 'ru' } = Astro.props;
 const { profile } = Astro.locals;
 const path = Astro.url.pathname;
+const role = profile?.role ?? '';
 ---
 
 <!doctype html>
@@ -27,17 +29,19 @@ const path = Astro.url.pathname;
           <span>Админ-панель</span>
         </a>
         <nav class="flex gap-5 max-md:hidden">
-          {['super_admin','moderator'].includes(profile?.role ?? '') && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/feedback' }]} href="/admin/feedback">Кабинет доверия</a>}
-          {['super_admin','moderator','editor'].includes(profile?.role ?? '') && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/news' }]} href="/admin/news">Новости</a>}
-          {['super_admin','moderator','editor'].includes(profile?.role ?? '') && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/announcements' }]} href="/admin/announcements">Объявления</a>}
-          {['super_admin','moderator'].includes(profile?.role ?? '') && <>
+          {['super_admin','moderator'].includes(role) && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/feedback' }]} href="/admin/feedback">Кабинет доверия</a>}
+          {['super_admin','moderator','editor'].includes(role) && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/news' }]} href="/admin/news">Новости</a>}
+          {['super_admin','moderator','editor'].includes(role) && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/announcements' }]} href="/admin/announcements">Объявления</a>}
+          {['super_admin','moderator','editor'].includes(role) && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/images' }]} href="/admin/images">Изображения</a>}
+          {['super_admin','moderator'].includes(role) && <>
             <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/teachers' }]} href="/admin/teachers">Учителя</a>
             <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/schedule' }]} href="/admin/schedule">Расписание</a>
+            <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/gallery' }]} href="/admin/gallery">Галерея</a>
           </>}
-          {(profile?.role ?? '') === 'super_admin' && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/users' }]} href="/admin/users">Пользователи</a>}
+          {role === 'super_admin' && <a class:list={['text-sm font-semibold no-underline text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors', { 'text-[var(--color-primary)]': path === '/admin/users' }]} href="/admin/users">Пользователи</a>}
         </nav>
         <div class="flex items-center gap-3">
-          <span class="text-xs font-bold text-[var(--color-primary)] bg-[var(--color-primary-soft)] px-2.5 py-1 rounded-full">{profile?.role}</span>
+          <span class="text-xs font-bold text-[var(--color-primary)] bg-[var(--color-primary-soft)] px-2.5 py-1 rounded-full">{roleLabel(role)}</span>
           <form action="/api/auth/signout" method="POST" class="inline"><input type="hidden" name="redirect" value="/" /><button class="text-xs font-bold text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 cursor-pointer hover:bg-[var(--color-bg-soft)] transition-colors" type="submit">Выйти</button></form>
         </div>
       </div>

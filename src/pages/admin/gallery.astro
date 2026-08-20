@@ -1,0 +1,118 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { supabase } from '../../lib/supabase';
+import { z } from 'zod';
+import { MODERATOR_ROLES } from '../../lib/roles';
+
+const { profile } = Astro.locals;
+if (!profile || !MODERATOR_ROLES.includes(profile.role)) {
+  return Astro.redirect('/admin');
+}
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const gallerySchema = z.object({
+  image_url: z.string().min(1, 'Укажите URL изображения'),
+  caption_ru: z.string().optional().default(''),
+  caption_kk: z.string().optional().default(''),
+});
+let success = '', error = '';
+if (Astro.request.method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const parsed = gallerySchema.parse({
+      image_url: formData.get('image_url'),
+      caption_ru: formData.get('caption_ru'),
+      caption_kk: formData.get('caption_kk'),
+    });
+    const { data: max } = await supabase
+      .from('gallery')
+      .select('sort_order')
+      .order('sort_order', { ascending: false })
+      .limit(1);
+    const sort_order = (max?.[0]?.sort_order ?? 0) + 1;
+    const { error: dbErr } = await supabase.from('gallery').insert({
+      image_url: parsed.image_url,
+      caption_ru: parsed.caption_ru,
+      caption_kk: parsed.caption_kk,
+      sort_order,
+    });
+    if (dbErr) throw dbErr;
+    success = 'Фото добавлено в галерею!';
+  } catch (e: any) { error = e.message || 'Ошибка добавления'; }
+}
+
+const { data: storageFiles } = await supabase.storage.from('school-images').list();
+const imageOptions = (storageFiles ?? []).map(f => `${supabaseUrl}/storage/v1/object/public/school-images/${f.name}`);
+
+const { data: galleryItems } = await supabase
+  .from('gallery')
+  .select('*')
+  .order('sort_order', { ascending: true });
+---
+<Admin>
+  <header class="mb-8">
+    <h1 class="text-3xl font-extrabold mb-1">Галерея</h1>
+    <p class="text-[var(--color-text-secondary)]">Фотографии школы — отображаются на главной и странице «О школе»</p>
+  </header>
+
+  {success && <div class="bg-green-50 text-green-800 border border-green-200 rounded-lg px-4 py-3 mb-6 text-sm font-medium">{success}</div>}
+  {error && <div class="bg-red-50 text-red-800 border border-red-200 rounded-lg px-4 py-3 mb-6 text-sm font-medium">{error}</div>}
+
+  <form method="POST" class="bg-white border border-[var(--color-border)] rounded-2xl p-6 mb-8 shadow-sm">
+    <h2 class="text-lg font-bold mb-4">Добавить фото</h2>
+    <div class="grid grid-cols-2 gap-3 mb-3 max-md:grid-cols-1">
+      <input id="gallery-image-input" class="col-span-2 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="url" name="image_url" placeholder="URL изображения (или выберите из библиотеки)" required />
+      <select id="gallery-image-picker" class="col-span-2 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm font-[inherit]">
+        <option value="">— Выбрать из загруженных —</option>
+        {imageOptions.map(u => (
+          <option value={u}>{u.split('/').pop()}</option>
+        ))}
+      </select>
+      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="caption_ru" placeholder="Подпись (русский)" />
+      <input class="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm" type="text" name="caption_kk" placeholder="Подпись (казахский)" />
+    </div>
+    <div class="flex items-center gap-4">
+      <button class="px-5 py-2 bg-[var(--color-primary)] text-white border-none rounded-lg text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity" type="submit">Добавить</button>
+      <a href="/admin/images" class="text-sm font-bold text-[var(--color-primary)] no-underline">Сначала загрузить фото</a>
+    </div>
+  </form>
+
+  <div class="flex flex-col gap-4">
+    {(galleryItems ?? []).map((item, i) => (
+      <div class="bg-white border border-[var(--color-border)] rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+        <img src={item.image_url} alt="" class="w-32 h-20 object-cover rounded-lg border border-[var(--color-border)] shrink-0" loading="lazy" />
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold m-0 mb-1 truncate">{item.caption_ru || 'Без подписи'}</p>
+          <p class="text-xs text-[var(--color-text-muted)] m-0 break-all">{item.image_url}</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <form action="/api/admin/gallery/move" method="POST" class="inline">
+            <input type="hidden" name="id" value={item.id} />
+            <input type="hidden" name="direction" value="up" />
+            <button class="px-2.5 py-1.5 border border-[var(--color-border)] rounded-lg text-xs font-bold cursor-pointer bg-white hover:bg-[var(--color-bg-soft)] disabled:opacity-40 transition-colors" type="submit" disabled={i === 0}>↑</button>
+          </form>
+          <form action="/api/admin/gallery/move" method="POST" class="inline">
+            <input type="hidden" name="id" value={item.id} />
+            <input type="hidden" name="direction" value="down" />
+            <button class="px-2.5 py-1.5 border border-[var(--color-border)] rounded-lg text-xs font-bold cursor-pointer bg-white hover:bg-[var(--color-bg-soft)] disabled:opacity-40 transition-colors" type="submit" disabled={i === (galleryItems?.length ?? 1) - 1}>↓</button>
+          </form>
+          <form action="/api/admin/gallery/delete" method="POST" class="inline">
+            <input type="hidden" name="id" value={item.id} />
+            <button class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold cursor-pointer hover:bg-red-100 transition-colors" type="submit">Удалить</button>
+          </form>
+        </div>
+      </div>
+    ))}
+    {!galleryItems || galleryItems.length === 0 ? (
+      <p class="text-center text-[var(--color-text-secondary)] py-12">Галерея пуста — добавьте первое фото</p>
+    ) : ''}
+  </div>
+</Admin>
+
+<script>
+  const picker = document.getElementById('gallery-image-picker') as HTMLSelectElement | null;
+  const input = document.getElementById('gallery-image-input') as HTMLInputElement | null;
+  picker?.addEventListener('change', () => {
+    if (picker.value && input) input.value = picker.value;
+  });
+</script>
