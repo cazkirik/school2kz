@@ -2,7 +2,10 @@ const TOKEN = process.env.TG_BOT_TOKEN || '';
 const CHAT_ID = process.env.TG_CHAT_ID || '';
 
 export async function sendTelegram(text: string): Promise<void> {
-  if (!TOKEN || !CHAT_ID) return;
+  if (!TOKEN || !CHAT_ID) {
+    console.error(`Telegram misconfigured: token=${TOKEN ? 'set' : 'MISSING'} chatId=${CHAT_ID ? 'set' : 'MISSING'}`);
+    return;
+  }
   const res = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -14,6 +17,8 @@ export async function sendTelegram(text: string): Promise<void> {
     }),
   });
   if (!res.ok) {
-    throw new Error(`Telegram send failed: ${res.status} ${await res.text()}`);
+    const body = await res.text();
+    console.error(`Telegram send failed: ${res.status} ${body.slice(0, 200)}`);
+    throw new Error(`Telegram send failed: ${res.status} ${body}`);
   }
 }
