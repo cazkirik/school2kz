@@ -47,11 +47,18 @@ const { data: announcements } = await supabase
         </div>
       </div>
       <div class="reveal">
-        <div class="aspect-[4/5] max-h-[440px] w-full max-w-[380px] mx-auto rounded-3xl overflow-hidden bg-white/5 border border-white/15 shadow-[var(--shadow-lg)]">
-          <img src="/school-photo.jpg" alt={siteConfig.name[lang]} width="480" height="600" class="w-full h-full object-cover" loading="eager" />
-          <div class="bg-[var(--color-navy)]/95 backdrop-blur px-4 py-3 flex items-center justify-center gap-3">
-            <img src="/emblem-taraz.png" alt="" width="32" height="32" class="w-8 h-8 rounded-full object-contain shrink-0" loading="eager" />
-            <p class="text-[12px] font-extrabold tracking-[0.12em] text-blue-100 text-center uppercase m-0">{lang === 'ru' ? 'Школа №2 · Тараз' : '№2 мектеп · Тараз'}</p>
+        <div class="relative max-w-[420px] mx-auto">
+          <div class="aspect-[4/5] max-h-[460px] w-full rounded-3xl overflow-hidden bg-white/5 border border-white/15 shadow-[var(--shadow-lg)]">
+            <img src="/images/hero-school.jpg" alt={siteConfig.name[lang]} width="480" height="600" class="w-full h-full object-cover" loading="eager" />
+          </div>
+          <div class="absolute -left-6 bottom-6 bg-[var(--color-navy)]/95 backdrop-blur px-5 py-3.5 rounded-2xl border border-white/15 shadow-[var(--shadow-lg)] max-md:static max-md:mt-4 max-md:flex max-md:items-center max-md:justify-center max-md:gap-3">
+            <div class="flex items-center gap-3">
+              <img src="/emblem-taraz.png" alt="" width="32" height="32" class="w-8 h-8 rounded-full object-contain shrink-0" loading="eager" />
+              <div>
+                <p class="text-[12px] font-extrabold tracking-[0.12em] text-blue-100 uppercase m-0">{lang === 'ru' ? 'Школа №2 · Тараз' : '№2 мектеп · Тараз'}</p>
+                <p class="text-[11px] text-slate-400 m-0">{lang === 'ru' ? 'с 1997 года' : '1997 жылдан бері'}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -163,6 +170,81 @@ const { data: announcements } = await supabase
         ))}
       </div>
     ) : <p>{t.publications.empty}</p>}
+  </div>
+</section>
+
+<section class="relative py-24 overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-br from-[var(--color-navy)] via-[#1e3a5f] to-[var(--color-primary)]" aria-hidden="true"></div>
+  <div class="absolute inset-0 opacity-10" aria-hidden="true" style="background-image: radial-gradient(circle at 80% 20%, white 1px, transparent 1px); background-size: 24px 24px;"></div>
+  <div class="container relative">
+    <div class="grid grid-cols-[1fr_0.85fr] gap-14 items-center max-lg:grid-cols-1 max-lg:gap-8">
+      <div class="reveal">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-blue-200 bg-white/10 border border-white/15 mb-5">
+          {lang === 'ru' ? 'Кабинет доверия' : 'Сенім кабинеті'}
+        </span>
+        <h2 class="text-white text-[clamp(30px,4vw,40px)] font-extrabold leading-[1.15] m-0 mb-4">
+          {lang === 'ru' ? 'Мы всегда готовы выслушать' : 'Біз әрқашан тыңдауға дайынбыз'}
+        </h2>
+        <p class="text-slate-300 text-lg leading-relaxed m-0 mb-8 max-w-[500px]">
+          {lang === 'ru'
+            ? 'Если у вас есть вопрос, предложение или тревожная ситуация — вы можете анонимно сообщить об этом школьному психологу или администрации.'
+            : 'Сұрағыңыз, ұсынысыңыз немесе алаңдататын жағдай болса — бұл туралы мектеп психологіне немесе әкімшілікке анонимді түрде хабарлай аласыз.'}
+        </p>
+        <div class="flex gap-4 flex-wrap">
+          <a class="inline-flex items-center gap-2 bg-white text-[var(--color-primary)] px-7 py-3.5 rounded-2xl text-base font-bold no-underline shadow-[0_4px_14px_rgba(0,0,0,0.25)] hover:bg-[var(--color-primary-soft)] hover:-translate-y-0.5 transition-all" href={`${prefix}/feedback/`}>
+            <span>{lang === 'ru' ? 'Написать анонимно' : 'Анонимді жазу'}</span><span>&rarr;</span>
+          </a>
+          <a class="inline-flex items-center gap-2 bg-white/10 text-white px-7 py-3.5 rounded-2xl text-base font-bold no-underline border border-white/20 backdrop-blur hover:bg-white/20 hover:-translate-y-0.5 transition-all" href={`${prefix}/contacts/`}>
+            <span>{lang === 'ru' ? 'Контакты' : 'Байланыс'}</span>
+          </a>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="relative">
+          <div class="absolute -inset-3 bg-white/10 rounded-3xl blur-2xl" aria-hidden="true"></div>
+          <div class="relative aspect-[4/3] rounded-3xl overflow-hidden border border-white/20 shadow-[var(--shadow-lg)]">
+            <img src="/images/students.jpg" alt={lang === 'ru' ? 'Учащиеся школы' : 'Мектеп оқушылары'} class="w-full h-full object-cover" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-24 bg-[var(--color-bg-soft)]">
+  <div class="container">
+    <div class="flex items-end justify-between mb-10 reveal">
+      <div>
+        <span class="eyebrow mb-4">{lang === 'ru' ? 'Наша школа' : 'Біздің мектеп'}</span>
+        <h2 class="text-[clamp(28px,4vw,38px)] font-extrabold m-0">{lang === 'ru' ? 'Жизнь школы в фотографиях' : 'Мектеп өмірі фотосуреттерде'}</h2>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-5 max-md:grid-cols-1 reveal">
+      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
+        <img src="/images/classroom.jpg" alt={lang === 'ru' ? 'Учебный класс' : 'Оқу сыныбы'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Современные кабинеты' : 'Заманауи кабинеттер'}</span>
+      </a>
+      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
+        <img src="/images/library.jpg" alt={lang === 'ru' ? 'Библиотека' : 'Кітапхана'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Школьная библиотека' : 'Мектеп кітапханасы'}</span>
+      </a>
+      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
+        <img src="/images/science-lab.jpg" alt={lang === 'ru' ? 'Лаборатория' : 'Зертхана'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Кабинет химии и физики' : 'Химия және физика кабинеті'}</span>
+      </a>
+      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
+        <img src="/images/sports.jpg" alt={lang === 'ru' ? 'Спортивный зал' : 'Спорт залы'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Спортивный зал' : 'Спорт залы'}</span>
+      </a>
+      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
+        <img src="/images/art-class.jpg" alt={lang === 'ru' ? 'Уроки творчества' : 'Шығармашылық сабақтары'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Уроки творчества' : 'Шығармашылық сабақтары'}</span>
+      </a>
+      <a href={`${prefix}/about/`} class="relative group rounded-2xl overflow-hidden block h-[240px] shadow-sm hover:shadow-[var(--shadow-lg)] transition-all hover:-translate-y-1">
+        <img src="/images/campus.jpg" alt={lang === 'ru' ? 'Школьный двор' : 'Мектеп ауласы'} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent text-white text-sm font-bold px-5 py-4">{lang === 'ru' ? 'Школьный двор' : 'Мектеп ауласы'}</span>
+      </a>
+    </div>
   </div>
 </section>
 

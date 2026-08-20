@@ -81,7 +81,7 @@ const links = [
 <script>
   import { supabase } from '../lib/supabase';
   const toggle = document.querySelector('[data-nav-toggle]');
-  const overlay = document.querySelector('[data-nav-overlay]');
+  const overlay = document.querySelector('[data-nav-overlay]') as HTMLElement | null;
   if (toggle && overlay) {
     const setOpen = (open: boolean) => {
       toggle.setAttribute('aria-expanded', String(open));
