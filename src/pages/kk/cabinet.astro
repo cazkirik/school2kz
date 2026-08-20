@@ -176,16 +176,16 @@ const STATUS_LABELS: Record<string, string> = { new: 'Жаңа', reviewed: 'Қа
     const confirmP = (document.getElementById('confirm-password') as HTMLInputElement).value;
     if (!msg) return;
     msg.hidden = false;
-    if (newP.length < 6) { msg.textContent = 'Құпия сөз кемінде 6 символ болуы керек'; msg.className = 'hidden mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-50 text-red-800'; return; }
-    if (newP !== confirmP) { msg.textContent = 'Құпия сөздер сәйкес келмейді'; msg.className = 'hidden mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-50 text-red-800'; return; }
+    if (newP.length < 6) { msg.textContent = 'Құпия сөз кемінде 6 символ болуы керек'; msg.className = 'mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-50 text-red-800'; return; }
+    if (newP !== confirmP) { msg.textContent = 'Құпия сөздер сәйкес келмейді'; msg.className = 'mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-50 text-red-800'; return; }
     if (btn) { btn.disabled = true; btn.textContent = '...'; }
     const { error } = await supabase.auth.updateUser({ password: newP });
     if (error) {
       msg.textContent = 'Қате: ' + error.message;
-      msg.className = 'hidden mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-50 text-red-800';
+      msg.className = 'mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-50 text-red-800';
     } else {
       msg.textContent = 'Құпия сөз сәтті жаңартылды';
-      msg.className = 'hidden mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-green-50 text-green-800';
+      msg.className = 'mb-3 px-4 py-2.5 rounded-lg text-sm font-medium bg-green-50 text-green-800';
       form.reset();
     }
     if (btn) { btn.disabled = false; btn.textContent = 'Құпия сөзді жаңарту'; }

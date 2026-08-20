@@ -33,7 +33,7 @@ const items = (await getCollection('publications'))
     ) : (
       <p class="text-center text-[var(--color-text-secondary)]">{t.publications.empty}</p>
     )}
-    <p id="pubs-empty" class="hidden text-center text-[var(--color-text-secondary)]">{t.search.noResults}</p>
+    <p id="pubs-empty" class="text-center text-[var(--color-text-secondary)]" hidden>{t.search.noResults}</p>
   </div>
 </section>
 
