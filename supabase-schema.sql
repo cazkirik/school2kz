@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT NOT NULL DEFAULT '',
   role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('super_admin', 'moderator', 'editor', 'student', 'teacher', 'parent')),
+  banned BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -254,12 +255,12 @@ CREATE POLICY "Admins can delete school images" ON storage.objects FOR DELETE US
 
 -- RPC: список пользователей с email (только для директора)
 CREATE OR REPLACE FUNCTION admin_list_users()
-RETURNS TABLE (id UUID, email TEXT, full_name TEXT, role TEXT, created_at TIMESTAMPTZ)
+RETURNS TABLE (id UUID, email TEXT, full_name TEXT, role TEXT, banned BOOLEAN, created_at TIMESTAMPTZ)
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = public, auth
 AS $$
-  SELECT u.id, u.email, p.full_name, p.role, p.created_at
+  SELECT u.id, u.email, p.full_name, p.role, p.banned, p.created_at
   FROM auth.users u
   LEFT JOIN public.profiles p ON p.id = u.id
   WHERE EXISTS (
@@ -270,3 +271,21 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION admin_list_users() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION admin_list_users() TO authenticated;
+
+-- RPC: бан/разбан пользователя (только для директора)
+CREATE OR REPLACE FUNCTION admin_set_banned(target_id uuid, value boolean)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.profiles me WHERE me.id = auth.uid() AND me.role = 'super_admin') THEN
+    RAISE EXCEPTION 'Forbidden';
+  END IF;
+  UPDATE public.profiles SET banned = value WHERE id = target_id;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION admin_set_banned(uuid, boolean) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION admin_set_banned(uuid, boolean) TO authenticated;

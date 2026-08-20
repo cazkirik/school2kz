@@ -15,7 +15,7 @@ const items = (await getCollection('publications'))
   <div class="container">
     <div class="text-center mb-12 reveal">
       <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-[var(--color-success)] bg-[var(--color-success-soft)] mb-4">{t.publications.title}</span>
-      <h2 class="text-[clamp(28px,4vw,38px)] font-extrabold">{t.publications.title}</h2>
+      <h1 class="text-[clamp(28px,4vw,38px)] font-extrabold">{t.publications.title}</h1>
     </div>
     {items.length > 0 ? (
       <div class="grid grid-cols-3 gap-7 max-lg:grid-cols-1">

@@ -13,6 +13,11 @@ export default defineConfig({
   devToolbar: {
     enabled: false,
   },
+  redirects: {
+    '/register': '/auth/signup',
+    '/kk/register': '/kk/auth/signup',
+    '/admin/news/new': '/admin/news',
+  },
   i18n: {
     defaultLocale: 'ru',
     locales: ['ru', 'kk'],

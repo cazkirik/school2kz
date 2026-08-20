@@ -1,6 +1,7 @@
 ---
 import Admin from '../../layouts/Admin.astro';
 import { supabase } from '../../lib/supabase';
+import { sendTelegram } from '../../lib/telegram';
 import { z } from 'zod';
 import { ADMIN_ROLES } from '../../lib/roles';
 
@@ -53,6 +54,9 @@ if (Astro.request.method === 'POST') {
       const { error: dbErr } = await supabase.from('news').insert({ slug, ...payload });
       if (dbErr) throw dbErr;
       success = 'Новость опубликована!';
+      await sendTelegram(
+        `<b>📰 Новая новость на сайте школы</b>\n\n<b>${parsed.title.replace(/[<>]/g, '')}</b>\n\n${parsed.description.slice(0, 200)}${parsed.description.length > 200 ? '…' : ''}\n\nhttps://school2kz.vercel.app/${parsed.lang === 'kk' ? 'kk/' : ''}news/${slug}/`
+      ).catch(() => {});
     }
   } catch (e: any) { error = e.message || 'Ошибка сохранения'; }
 }

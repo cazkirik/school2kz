@@ -1,6 +1,7 @@
 ---
 import Admin from '../../layouts/Admin.astro';
 import { supabase } from '../../lib/supabase';
+import { sendTelegram } from '../../lib/telegram';
 import { z } from 'zod';
 import { ADMIN_ROLES } from '../../lib/roles';
 
@@ -43,6 +44,9 @@ if (Astro.request.method === 'POST') {
       });
       if (dbErr) throw dbErr;
       success = 'Объявление опубликовано!';
+      await sendTelegram(
+        `<b>📢 Новое объявление</b>${pinned ? ' (закреплено)' : ''}\n\n<b>${parsed.title.replace(/[<>]/g, '')}</b>\n\n${parsed.content.slice(0, 200)}${parsed.content.length > 200 ? '…' : ''}\n\nhttps://school2kz.vercel.app/${parsed.lang === 'kk' ? 'kk/' : ''}announcements/`
+      ).catch(() => {});
     }
   } catch (e: any) { error = e.message || 'Ошибка публикации'; }
 }

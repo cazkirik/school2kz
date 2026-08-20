@@ -22,6 +22,14 @@ const canonicalURL = siteConfig.siteUrl ? siteConfig.siteUrl.replace(/\/$/, '') 
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteConfig.name[lang]} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description ?? siteConfig.tagline[lang]} />
+    <meta property="og:url" content={canonicalURL ?? siteConfig.siteUrl} />
+    <meta property="og:image" content={`${siteConfig.siteUrl?.replace(/\/$/, '')}/images/school-1.jpg`} />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description ?? siteConfig.tagline[lang]} />
     {canonicalURL && <link rel="canonical" href={canonicalURL} />}
@@ -37,9 +45,12 @@ const canonicalURL = siteConfig.siteUrl ? siteConfig.siteUrl.replace(/\/$/, '') 
         window.location.replace('/auth/update-password' + hash);
       }
       import Lenis from 'lenis';
-      const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
-      function raf(time: number) { lenis.raf(time); requestAnimationFrame(raf); }
-      requestAnimationFrame(raf);
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!prefersReduced) {
+        const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+        function raf(time: number) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+      }
       document.querySelectorAll('.reveal').forEach(el => {
         const io = new IntersectionObserver(entries => {
           entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });

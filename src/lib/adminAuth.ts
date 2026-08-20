@@ -22,11 +22,11 @@ export async function requireAdmin(
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('id, role, banned')
     .eq('id', session.user.id)
     .single();
 
-  if (!profile || !roles.includes(profile.role)) {
+  if (!profile || profile.banned || !roles.includes(profile.role)) {
     return null;
   }
 

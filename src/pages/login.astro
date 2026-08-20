@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import { siteConfig } from '../siteConfig';
 
 const lang = 'ru';
+const banned = Astro.url.searchParams.get('banned') === '1';
 const rawRedirect = Astro.url.searchParams.get('redirect') || '/admin';
 const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') && !rawRedirect.includes('://') ? rawRedirect : '/admin';
 ---
@@ -11,6 +12,8 @@ const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') &&
     <div class="max-w-[400px] mx-auto text-center w-full px-4">
       <h1 class="text-3xl font-extrabold mb-2">Вход</h1>
       <p class="text-[var(--color-text-secondary)] mb-8">Введите ваш email и пароль</p>
+
+      {banned && <div class="mb-4 px-4 py-3 rounded-lg font-medium bg-red-100 text-red-800">Ваш аккаунт заблокирован администрацией школы. Обратитесь к директору для уточнения причин.</div>}
 
       <form id="login-form" class="flex flex-col gap-3 mb-4">
         <input type="hidden" name="redirect" value={redirect} />
@@ -46,7 +49,12 @@ const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') &&
   }
 
   async function routeByRole(userId: string) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single();
+    const { data: profile } = await supabase.from('profiles').select('role, banned').eq('id', userId).single();
+    if (profile?.banned) {
+      await supabase.auth.signOut();
+      showMsg('Ваш аккаунт заблокирован. Обратитесь к администрации школы.', 'error');
+      return;
+    }
     const isAdmin = profile && ['super_admin', 'moderator', 'editor'].includes(profile.role);
     const target = isAdmin ? (redirect && redirect !== '/admin' ? redirect : '/admin') : '/cabinet';
     window.location.href = target;

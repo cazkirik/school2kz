@@ -13,6 +13,7 @@ interface AdminUser {
   email: string | null;
   full_name: string;
   role: string;
+  banned: boolean | null;
   created_at: string | null;
 }
 
@@ -41,6 +42,7 @@ const ROLES = ['super_admin', 'moderator', 'editor', 'student', 'teacher', 'pare
           <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Email</th>
           <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Уровень допуска</th>
           <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Права</th>
+          <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Статус</th>
           <th class="px-4 py-3 text-left font-bold text-[var(--color-text-primary)]">Дата регистрации</th>
         </tr>
       </thead>
@@ -63,6 +65,12 @@ const ROLES = ['super_admin', 'moderator', 'editor', 'student', 'teacher', 'pare
               </div>
               <p class="mt-2 text-xs text-[var(--color-text-muted)] max-w-xs">{[ROLE_DESC[item.role] ?? '']}</p>
             </td>
+            <td class="px-4 py-3">
+              <div class="flex flex-col items-start gap-1.5">
+                <span class:list={['px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap', item.banned ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700']}>{item.banned ? 'Заблокирован' : 'Активен'}</span>
+                <button data-ban-btn data-banned={item.banned ? 'true' : 'false'} class:list={['px-3 py-1.5 border rounded-lg text-xs font-bold cursor-pointer transition-colors', item.banned ? 'border-green-300 text-green-700 bg-white hover:bg-green-50' : 'border-red-300 text-red-700 bg-white hover:bg-red-50']} type="button">{item.banned ? 'Разблокировать' : 'Заблокировать'}</button>
+              </div>
+            </td>
             <td class="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap">
               {item.created_at ? new Date(item.created_at).toLocaleDateString('ru-RU') : '—'}
             </td>
@@ -70,7 +78,7 @@ const ROLES = ['super_admin', 'moderator', 'editor', 'student', 'teacher', 'pare
         ))}
         {!profiles || profiles.length === 0 ? (
           <tr>
-            <td colspan="5" class="px-4 py-8 text-center text-[var(--color-text-secondary)]">Пользователей пока нет</td>
+            <td colspan="6" class="px-4 py-8 text-center text-[var(--color-text-secondary)]">Пользователей пока нет</td>
           </tr>
         ) : ''}
       </tbody>
@@ -121,6 +129,32 @@ const ROLES = ['super_admin', 'moderator', 'editor', 'student', 'teacher', 'pare
       } catch (err) {
         showStatus('Ошибка: ' + (err instanceof Error ? err.message : '?'), false);
       } finally { btn.disabled = false; btn.textContent = 'Сохранить'; }
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-ban-btn]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const row = btn.closest('[data-role-row]') as HTMLElement | null;
+      if (!row) return;
+      const id = row.dataset.userId;
+      const banned = btn.dataset.banned === 'true';
+      const action = banned ? 'разблокировать' : 'заблокировать';
+      if (!id) return;
+      if (!confirm(`Вы уверены, что хотите ${action} этого пользователя?`)) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/admin/users/ban', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, banned: !banned })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Не удалось изменить статус');
+        showStatus(banned ? 'Пользователь разблокирован' : 'Пользователь заблокирован', true);
+        setTimeout(() => location.reload(), 800);
+      } catch (err) {
+        showStatus('Ошибка: ' + (err instanceof Error ? err.message : '?'), false);
+      } finally { btn.disabled = false; }
     });
   });
 </script>

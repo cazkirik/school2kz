@@ -26,9 +26,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, full_name, role, created_at, updated_at')
+      .select('id, full_name, role, banned, created_at, updated_at')
       .eq('id', session.user.id)
       .single();
+
+    if (!profile || profile.banned) {
+      cookies.delete('sb-access-token', { path: '/' });
+      cookies.delete('sb-refresh-token', { path: '/' });
+      return redirect('/login?banned=1');
+    }
 
     if (!profile || !['super_admin', 'moderator', 'editor'].includes(profile.role)) {
       return redirect('/');

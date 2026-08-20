@@ -36,7 +36,7 @@ const links = [
       </ul>
     </nav>
     <div class="flex items-center gap-2.5 shrink-0">
-      <a class="w-9 h-9 inline-flex items-center justify-center bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-lg text-[13px] font-bold text-[var(--color-text-primary)] no-underline hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary-soft)] transition-all" href={lang === 'ru' ? kkPath : ruPath} title={t.langSwitchTitle}>
+      <a class="w-11 h-11 inline-flex items-center justify-center bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-lg text-[13px] font-bold text-[var(--color-text-primary)] no-underline hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary-soft)] transition-all" href={lang === 'ru' ? kkPath : ruPath} title={t.langSwitchTitle}>
         {lang === 'ru' ? 'KK' : 'RU'}
       </a>
       <a class="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg text-[13px] font-bold no-underline hover:bg-[var(--color-primary-hover)] transition-colors hidden sm:inline-flex" data-auth-btn href={lang === 'ru' ? '/login' : '/kk/login'}>
@@ -48,7 +48,7 @@ const links = [
       <a class="hidden sm:inline-flex bg-[var(--color-bg-soft)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-[13px] font-bold no-underline hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)] transition-all" data-cabinet-link style="display:none" href={lang === 'ru' ? '/cabinet' : '/kk/cabinet'}>
         {t.cabinet}
       </a>
-      <button class="xl:hidden relative w-9 h-9 bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-lg cursor-pointer" aria-label="Открыть меню" aria-expanded="false" data-nav-toggle>
+      <button class="xl:hidden relative w-11 h-11 bg-[var(--color-bg-soft)] border border-[var(--color-border)] rounded-lg cursor-pointer" aria-label="Открыть меню" aria-expanded="false" data-nav-toggle>
         <span class="absolute left-1/2 w-4 h-0.5 bg-[var(--color-text-primary)] rounded-sm -translate-x-1/2 -translate-y-[5px] transition-all"></span>
         <span class="absolute left-1/2 w-4 h-0.5 bg-[var(--color-text-primary)] rounded-sm -translate-x-1/2 transition-all"></span>
         <span class="absolute left-1/2 w-4 h-0.5 bg-[var(--color-text-primary)] rounded-sm -translate-x-1/2 translate-y-[5px] transition-all"></span>

@@ -18,7 +18,7 @@ const { data: news } = await supabase
   <div class="container">
     <div class="text-center mb-12 reveal">
       <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-[var(--color-primary)] bg-[var(--color-primary-soft)] mb-4">{t.news.title}</span>
-      <h2 class="text-[clamp(28px,4vw,38px)] font-extrabold">{t.news.title}</h2>
+      <h1 class="text-[clamp(28px,4vw,38px)] font-extrabold">{t.news.title}</h1>
     </div>
     {news && news.length > 0 ? (
       <div class="grid grid-cols-3 gap-7 max-lg:grid-cols-1">
