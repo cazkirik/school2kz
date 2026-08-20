@@ -21,7 +21,7 @@ const msgs = {
       <p class="text-[var(--color-text-secondary)] m-0">{t.subtitle}</p>
     </div>
 
-    <form id="admission-form" class="bg-white border border-[var(--color-border)] rounded-2xl p-8 shadow-sm mb-6" novalidate data-msgs={JSON.stringify(msgs).replace(/"/g, '&quot;')}>
+    <form id="admission-form" class="bg-white border border-[var(--color-border)] rounded-2xl p-8 shadow-sm mb-6" novalidate data-msgs={JSON.stringify(msgs)}>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
         <div class="md:col-span-2">
           <label for="child-name" class="block text-sm font-bold mb-1.5">{t.childName} <span class="text-red-500">*</span></label>
